@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { menuStructure } from "./menu";
 import type { AppBaseUrls, AppId, MenuItem } from "./types";
+import { TRF_UI_VERSION } from "./version";
 
 type SideMenuProps = {
   currentAppId: AppId;
@@ -55,6 +56,10 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className }
     const fallback = DEFAULT_OPEN_BY_APP[currentAppId] ?? null;
     setOpenSectionId(fallback);
   }, [location.pathname, currentAppId]);
+
+  useEffect(() => {
+    console.info(`[trf-ui] version ${TRF_UI_VERSION}`);
+  }, []);
 
   const handleTopLevelToggle = (id: string, disabled?: boolean) => {
     if (disabled) return;
