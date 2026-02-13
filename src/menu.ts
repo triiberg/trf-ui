@@ -32,14 +32,24 @@ export const menuStructure: MenuItem[] = [
     id: "crm",
     label: "CRM",
     children: [
-      { id: "crm-contacts", label: "Contacts", appId: "crm", path: "/contacts" },
-      { id: "crm-add-contact", label: "Add contact", appId: "crm", path: "/contacts/new" },
+      { id: "crm-dashboard", label: "Dashboard", appId: "crm", path: "/app" },
+      { id: "crm-contacts", label: "Contacts", appId: "crm", path: "/app/contacts" },
+      { id: "crm-add-contact", label: "Add contact", appId: "crm", path: "/app/contacts/new" },
+      {
+        id: "crm-admin",
+        label: "Contact Administration",
+        children: [
+          { id: "crm-admin-relation-types", label: "Relation types", appId: "crm", path: "/app/admin/relation-types" },
+          { id: "crm-admin-attribute-types", label: "Attribute types", appId: "crm", path: "/app/admin/attribute-types" }
+        ]
+      },
       {
         id: "crm-reports",
         label: "Reports",
+        disabled: true,
         children: [
-          { id: "crm-reports-sales", label: "Sales in progress", appId: "crm", path: "/reports/sales-in-progress" },
-          { id: "crm-reports-debtors", label: "Debtors", appId: "crm", path: "/reports/debtors" }
+          { id: "crm-reports-sales", label: "Sales in progress", appId: "crm", path: "/reports/sales-in-progress", disabled: true },
+          { id: "crm-reports-debtors", label: "Debtors", appId: "crm", path: "/reports/debtors", disabled: true }
         ]
       }
     ]
