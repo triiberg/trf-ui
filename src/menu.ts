@@ -16,14 +16,16 @@ export const menuStructure: MenuItem[] = [
   {
     id: "assets",
     label: "Assets / inventory",
+    disabled: true,
     children: [
-      { id: "assets-items", label: "Items", appId: "assets", path: "/items" },
+      { id: "assets-items", label: "Items", appId: "assets", path: "/app/items", disabled: true },
       {
         id: "assets-reports",
         label: "Reports",
+        disabled: true,
         children: [
-          { id: "assets-reports-items-out", label: "Items out", appId: "assets", path: "/reports/items-out" },
-          { id: "assets-reports-missing", label: "Missing", appId: "assets", path: "/reports/missing" }
+          { id: "assets-reports-items-out", label: "Items out", appId: "assets", path: "/app/reports/items-out", disabled: true },
+          { id: "assets-reports-missing", label: "Missing", appId: "assets", path: "/app/reports/missing", disabled: true }
         ]
       }
     ]
@@ -48,8 +50,8 @@ export const menuStructure: MenuItem[] = [
         label: "Reports",
         disabled: true,
         children: [
-          { id: "crm-reports-sales", label: "Sales in progress", appId: "crm", path: "/reports/sales-in-progress", disabled: true },
-          { id: "crm-reports-debtors", label: "Debtors", appId: "crm", path: "/reports/debtors", disabled: true }
+          { id: "crm-reports-sales", label: "Sales in progress", appId: "crm", path: "/app/reports/sales-in-progress", disabled: true },
+          { id: "crm-reports-debtors", label: "Debtors", appId: "crm", path: "/app/reports/debtors", disabled: true }
         ]
       }
     ]
@@ -73,15 +75,15 @@ export const menuStructure: MenuItem[] = [
         label: "Sales",
         disabled: true,
         children: [
-          { id: "bk-sales-invoices", label: "Invoices", appId: "bookkeeping", path: "/sales/invoices", disabled: true },
-          { id: "bk-sales-create", label: "Create sale", appId: "bookkeeping", path: "/sales/new", disabled: true },
+          { id: "bk-sales-invoices", label: "Invoices", appId: "bookkeeping", path: "/app/sales/invoices", disabled: true },
+          { id: "bk-sales-create", label: "Create sale", appId: "bookkeeping", path: "/app/sales/new", disabled: true },
           {
             id: "bk-sales-reports",
             label: "Reports",
             disabled: true,
             children: [
-              { id: "bk-sales-reports-sales", label: "Sales report", appId: "bookkeeping", path: "/reports/sales", disabled: true },
-              { id: "bk-sales-reports-overdue", label: "Invoices over due", appId: "bookkeeping", path: "/reports/invoices-overdue", disabled: true }
+              { id: "bk-sales-reports-sales", label: "Sales report", appId: "bookkeeping", path: "/app/reports/sales", disabled: true },
+              { id: "bk-sales-reports-overdue", label: "Invoices over due", appId: "bookkeeping", path: "/app/reports/invoices-overdue", disabled: true }
             ]
           }
         ]
@@ -91,15 +93,15 @@ export const menuStructure: MenuItem[] = [
         label: "Purchases",
         disabled: true,
         children: [
-          { id: "bk-purchase-invoices", label: "Invoices", appId: "bookkeeping", path: "/purchases/invoices", disabled: true },
-          { id: "bk-purchase-import", label: "Import invoice", appId: "bookkeeping", path: "/purchases/import", disabled: true },
+          { id: "bk-purchase-invoices", label: "Invoices", appId: "bookkeeping", path: "/app/purchases/invoices", disabled: true },
+          { id: "bk-purchase-import", label: "Import invoice", appId: "bookkeeping", path: "/app/purchases/import", disabled: true },
           {
             id: "bk-purchase-reports",
             label: "Reports",
             disabled: true,
             children: [
-              { id: "bk-purchase-reports-overdue", label: "Over due", appId: "bookkeeping", path: "/reports/purchases-overdue", disabled: true },
-              { id: "bk-purchase-reports-by-buyer", label: "By buyer", appId: "bookkeeping", path: "/reports/by-buyer", disabled: true }
+              { id: "bk-purchase-reports-overdue", label: "Over due", appId: "bookkeeping", path: "/app/reports/purchases-overdue", disabled: true },
+              { id: "bk-purchase-reports-by-buyer", label: "By buyer", appId: "bookkeeping", path: "/app/reports/by-buyer", disabled: true }
             ]
           }
         ]
@@ -109,13 +111,13 @@ export const menuStructure: MenuItem[] = [
         label: "Finance",
         disabled: true,
         children: [
-          { id: "bk-finance-balance", label: "Balance sheet", appId: "bookkeeping", path: "/finance/balance-sheet", disabled: true },
+          { id: "bk-finance-balance", label: "Balance sheet", appId: "bookkeeping", path: "/app/finance/balance-sheet", disabled: true },
           {
             id: "bk-finance-reports",
             label: "Reports",
             disabled: true,
             children: [
-              { id: "bk-finance-reports-balance", label: "Balance sheet", appId: "bookkeeping", path: "/reports/balance-sheet", disabled: true }
+              { id: "bk-finance-reports-balance", label: "Balance sheet", appId: "bookkeeping", path: "/app/reports/balance-sheet", disabled: true }
             ]
           }
         ]
@@ -125,16 +127,18 @@ export const menuStructure: MenuItem[] = [
   {
     id: "hr",
     label: "HR Tools",
+    disabled: true,
     children: [
-      { id: "hr-overview", label: "Overview", appId: "hr", path: "/overview" },
-      { id: "hr-employees", label: "Employees", appId: "hr", path: "/employees" },
-      { id: "hr-contracts", label: "Contracts", appId: "hr", path: "/contracts" },
+      { id: "hr-overview", label: "Overview", appId: "hr", path: "/app/overview", disabled: true },
+      { id: "hr-employees", label: "Employees", appId: "hr", path: "/app/employees", disabled: true },
+      { id: "hr-contracts", label: "Contracts", appId: "hr", path: "/app/contracts", disabled: true },
       {
         id: "hr-settings",
         label: "Settings",
+        disabled: true,
         children: [
-          { id: "hr-settings-templates", label: "Contract templates", appId: "hr", path: "/settings/templates" },
-          { id: "hr-settings-rules", label: "Ruleset settings", appId: "hr", path: "/settings/rules" }
+          { id: "hr-settings-templates", label: "Contract templates", appId: "hr", path: "/app/settings/templates", disabled: true },
+          { id: "hr-settings-rules", label: "Ruleset settings", appId: "hr", path: "/app/settings/rules", disabled: true }
         ]
       }
     ]
