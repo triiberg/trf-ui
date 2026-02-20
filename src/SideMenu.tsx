@@ -1,22 +1,19 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { fetchDiscoveryMenuItems } from "./discoveryClient";
 import { menuStructure } from "./menu";
-import type { AppBaseUrls, AppId, MenuItem } from "./types";
+import type { AppBaseUrls, AppId, DiscoveryMenuConfig, MenuItem } from "./types";
 import { TRF_UI_VERSION } from "./version";
 
 type SideMenuProps = {
   currentAppId: AppId;
   baseUrls: AppBaseUrls;
   className?: string;
+  discovery?: DiscoveryMenuConfig;
 };
 
 const DEFAULT_OPEN_BY_APP: Record<string, string> = {
-  portal: "org",
-  ledger: "bookkeeping",
-  assets: "assets",
-  crm: "crm",
-  hr: "hr",
-  bookkeeping: "bookkeeping"
+  portal: "org"
 };
 
 const joinUrl = (base: string, path: string) => {
@@ -25,13 +22,18 @@ const joinUrl = (base: string, path: string) => {
   return `${trimmedBase}/${trimmedPath}`;
 };
 
-const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className }) => {
+const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, discovery }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [openSectionId, setOpenSectionId] = useState<string | null>(
     DEFAULT_OPEN_BY_APP[currentAppId] ?? null
   );
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [discoveryItems, setDiscoveryItems] = useState<MenuItem[]>([]);
+
+  const sideMenuItems = useMemo(() => {
+    return [...menuStructure, ...discoveryItems];
+  }, [discoveryItems]);
 
   const isActive = (item: MenuItem) => {
     if (!item.path) return false;
@@ -46,7 +48,36 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className }
   };
 
   useEffect(() => {
-    const activeTop = menuStructure.find(
+    let cancelled = false;
+
+    const fetchMenuItems = async () => {
+      try {
+        const items = await fetchDiscoveryMenuItems({
+          menuUrl: discovery?.menuUrl,
+          authToken: discovery?.authToken,
+          ifMatch: discovery?.ifMatch,
+          menuGroup: discovery?.menuGroup
+        });
+        if (!cancelled) {
+          setDiscoveryItems(items);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setDiscoveryItems([]);
+        }
+        console.error("[trf-ui] failed to fetch discovery menu", error);
+      }
+    };
+
+    void fetchMenuItems();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [discovery?.menuUrl, discovery?.authToken, discovery?.ifMatch, discovery?.menuGroup]);
+
+  useEffect(() => {
+    const activeTop = sideMenuItems.find(
       (section) => isActive(section) || hasActiveChild(section)
     );
     if (activeTop) {
@@ -55,7 +86,7 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className }
     }
     const fallback = DEFAULT_OPEN_BY_APP[currentAppId] ?? null;
     setOpenSectionId(fallback);
-  }, [location.pathname, currentAppId]);
+  }, [location.pathname, currentAppId, sideMenuItems]);
 
   useEffect(() => {
     console.info(`[trf-ui] version ${TRF_UI_VERSION}`);
@@ -159,7 +190,7 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className }
       </div>
 
       <div className="flex-1 overflow-y-auto px-3 py-4">
-        {renderItems(menuStructure)}
+        {renderItems(sideMenuItems)}
       </div>
     </div>
   );

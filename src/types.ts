@@ -18,3 +18,10 @@ export type MenuItem = {
   disabled?: boolean;
   children?: MenuItem[];
 };
+
+export type DiscoveryMenuConfig = {
+  menuUrl?: string;
+  authToken?: string;
+  ifMatch?: string;
+  menuGroup?: string;
+};
