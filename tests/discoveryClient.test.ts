@@ -82,10 +82,12 @@ test("mapDiscoveryMenuToMenuItems falls back to default group", () => {
 test("fetchDiscoveryMenuItems uses default URL and forwards auth headers", async () => {
   let receivedUrl = "";
   let receivedHeaders: Record<string, string> = {};
+  let receivedCredentials: RequestCredentials | undefined;
 
   const fetchImpl: typeof fetch = async (input, init) => {
     receivedUrl = String(input);
     receivedHeaders = (init?.headers ?? {}) as Record<string, string>;
+    receivedCredentials = init?.credentials;
     return new Response(JSON.stringify({ menus: { default: [] } }), {
       status: 200,
       headers: {
@@ -103,4 +105,46 @@ test("fetchDiscoveryMenuItems uses default URL and forwards auth headers", async
   assert.equal(receivedUrl, DEFAULT_DISCOVERY_MENU_URL);
   assert.equal(receivedHeaders.Authorization, "Bearer sample-token");
   assert.equal(receivedHeaders["If-Match"], "sample-etag");
+  assert.equal(receivedCredentials, "include");
+});
+
+test("fetchDiscoveryMenuItems falls back to jwt_token cookie when authToken is not provided", async () => {
+  let receivedHeaders: Record<string, string> = {};
+  const originalDocument = (globalThis as { document?: unknown }).document;
+
+  Object.defineProperty(globalThis, "document", {
+    configurable: true,
+    writable: true,
+    value: {
+      cookie: "jwt_token=cookie-token"
+    }
+  });
+
+  const fetchImpl: typeof fetch = async (_input, init) => {
+    receivedHeaders = (init?.headers ?? {}) as Record<string, string>;
+    return new Response(JSON.stringify({ menus: { default: [] } }), {
+      status: 200,
+      headers: {
+        "content-type": "application/json"
+      }
+    });
+  };
+
+  try {
+    await fetchDiscoveryMenuItems({
+      fetchImpl
+    });
+  } finally {
+    if (typeof originalDocument === "undefined") {
+      delete (globalThis as { document?: unknown }).document;
+    } else {
+      Object.defineProperty(globalThis, "document", {
+        configurable: true,
+        writable: true,
+        value: originalDocument
+      });
+    }
+  }
+
+  assert.equal(receivedHeaders.Authorization, "Bearer cookie-token");
 });

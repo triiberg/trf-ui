@@ -55,6 +55,8 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
         const items = await fetchDiscoveryMenuItems({
           menuUrl: discovery?.menuUrl,
           authToken: discovery?.authToken,
+          authCookieName: discovery?.authCookieName,
+          credentials: discovery?.credentials,
           ifMatch: discovery?.ifMatch,
           menuGroup: discovery?.menuGroup
         });
@@ -74,7 +76,14 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
     return () => {
       cancelled = true;
     };
-  }, [discovery?.menuUrl, discovery?.authToken, discovery?.ifMatch, discovery?.menuGroup]);
+  }, [
+    discovery?.menuUrl,
+    discovery?.authToken,
+    discovery?.authCookieName,
+    discovery?.credentials,
+    discovery?.ifMatch,
+    discovery?.menuGroup
+  ]);
 
   useEffect(() => {
     const activeTop = sideMenuItems.find(

@@ -22,6 +22,8 @@ export type MenuItem = {
 export type DiscoveryMenuConfig = {
   menuUrl?: string;
   authToken?: string;
+  authCookieName?: string;
+  credentials?: RequestCredentials;
   ifMatch?: string;
   menuGroup?: string;
 };
