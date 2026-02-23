@@ -148,3 +148,48 @@ test("fetchDiscoveryMenuItems falls back to jwt_token cookie when authToken is n
 
   assert.equal(receivedHeaders.Authorization, "Bearer cookie-token");
 });
+
+test("fetchDiscoveryMenuItems requires authentication and skips the request when token is missing", async () => {
+  let fetchCalled = false;
+  const originalDocument = (globalThis as { document?: unknown }).document;
+
+  Object.defineProperty(globalThis, "document", {
+    configurable: true,
+    writable: true,
+    value: {
+      cookie: ""
+    }
+  });
+
+  const fetchImpl: typeof fetch = async () => {
+    fetchCalled = true;
+    return new Response(JSON.stringify({ menus: { default: [] } }), {
+      status: 200,
+      headers: {
+        "content-type": "application/json"
+      }
+    });
+  };
+
+  try {
+    await assert.rejects(
+      () =>
+        fetchDiscoveryMenuItems({
+          fetchImpl
+        }),
+      /requires authentication/i
+    );
+  } finally {
+    if (typeof originalDocument === "undefined") {
+      delete (globalThis as { document?: unknown }).document;
+    } else {
+      Object.defineProperty(globalThis, "document", {
+        configurable: true,
+        writable: true,
+        value: originalDocument
+      });
+    }
+  }
+
+  assert.equal(fetchCalled, false);
+});

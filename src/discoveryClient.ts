@@ -23,6 +23,12 @@ export type DiscoveryMenuClientConfig = DiscoveryMenuConfig & {
   fetchImpl?: typeof fetch;
 };
 
+type ResolvedAuthToken = {
+  token?: string;
+  source: "config" | "cookie" | "none";
+  cookieName: string;
+};
+
 const safeDecodeURIComponent = (value: string): string => {
   try {
     return decodeURIComponent(value);
@@ -50,19 +56,30 @@ const getCookieValue = (cookieName: string): string | undefined => {
   return undefined;
 };
 
-const resolveAuthToken = (config: DiscoveryMenuClientConfig): string | undefined => {
+const resolveAuthToken = (config: DiscoveryMenuClientConfig): ResolvedAuthToken => {
   const explicitToken = config.authToken?.trim();
   if (explicitToken) {
-    return explicitToken;
+    return {
+      token: explicitToken,
+      source: "config",
+      cookieName: config.authCookieName?.trim() || DEFAULT_DISCOVERY_AUTH_COOKIE_NAME
+    };
   }
 
   const cookieName = config.authCookieName?.trim() || DEFAULT_DISCOVERY_AUTH_COOKIE_NAME;
   const cookieToken = getCookieValue(cookieName)?.trim();
   if (!cookieToken) {
-    return undefined;
+    return {
+      source: "none",
+      cookieName
+    };
   }
 
-  return cookieToken;
+  return {
+    token: cookieToken,
+    source: "cookie",
+    cookieName
+  };
 };
 
 const byOrder = (a: DiscoveryMenuEntry, b: DiscoveryMenuEntry) => {
@@ -102,26 +119,68 @@ export const fetchDiscoveryMenuItems = async (
   const menuUrl = config.menuUrl ?? DEFAULT_DISCOVERY_MENU_URL;
   const menuGroup = config.menuGroup ?? DEFAULT_DISCOVERY_MENU_GROUP;
   const fetchImpl = config.fetchImpl ?? fetch;
-  const authToken = resolveAuthToken(config);
+  const auth = resolveAuthToken(config);
+
+  if (!auth.token) {
+    const message =
+      `Discovery menu request requires authentication. ` +
+      `Provide discovery.authToken or ensure "${auth.cookieName}" cookie is present.`;
+    console.error("[trf-ui] discovery menu request blocked", {
+      menuUrl,
+      menuGroup,
+      reason: "missing_auth_token",
+      authCookieName: auth.cookieName
+    });
+    throw new Error(message);
+  }
 
   const headers: Record<string, string> = {};
-  if (authToken) {
-    headers.Authorization = `Bearer ${authToken}`;
-  }
+  headers.Authorization = `Bearer ${auth.token}`;
   if (config.ifMatch) {
     headers["If-Match"] = config.ifMatch;
   }
 
+  const credentials = config.credentials ?? DEFAULT_DISCOVERY_FETCH_CREDENTIALS;
+
+  console.log("[trf-ui] calling discovery menu endpoint", {
+    menuUrl,
+    menuGroup,
+    authSource: auth.source,
+    hasIfMatchHeader: Boolean(config.ifMatch),
+    credentials
+  });
+
   const response = await fetchImpl(menuUrl, {
     method: "GET",
     headers,
-    credentials: config.credentials ?? DEFAULT_DISCOVERY_FETCH_CREDENTIALS
+    credentials
   });
 
   if (!response.ok) {
+    console.error("[trf-ui] discovery menu request failed", {
+      menuUrl,
+      menuGroup,
+      status: response.status,
+      statusText: response.statusText
+    });
     throw new Error(`Discovery menu request failed: ${response.status} ${response.statusText}`);
   }
 
   const data = (await response.json()) as DiscoveryMenuResponse;
-  return mapDiscoveryMenuToMenuItems(data, menuGroup);
+  const items = mapDiscoveryMenuToMenuItems(data, menuGroup);
+
+  console.log("[trf-ui] discovery menu retrieved", {
+    menuUrl,
+    menuGroup,
+    status: response.status,
+    count: items.length,
+    items: items.map((item) => ({
+      id: item.id,
+      label: item.label,
+      path: item.path,
+      disabled: Boolean(item.disabled)
+    }))
+  });
+
+  return items;
 };

@@ -30,6 +30,7 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
   );
   const [mobileOpen, setMobileOpen] = useState(false);
   const [discoveryItems, setDiscoveryItems] = useState<MenuItem[]>([]);
+  const [discoveryError, setDiscoveryError] = useState<string | null>(null);
 
   const sideMenuItems = useMemo(() => {
     return [...menuStructure, ...discoveryItems];
@@ -51,6 +52,13 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
     let cancelled = false;
 
     const fetchMenuItems = async () => {
+      console.log("[trf-ui] starting discovery menu fetch", {
+        menuUrl: discovery?.menuUrl,
+        menuGroup: discovery?.menuGroup,
+        authTokenProvided: Boolean(discovery?.authToken),
+        authCookieName: discovery?.authCookieName
+      });
+
       try {
         const items = await fetchDiscoveryMenuItems({
           menuUrl: discovery?.menuUrl,
@@ -62,10 +70,20 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
         });
         if (!cancelled) {
           setDiscoveryItems(items);
+          setDiscoveryError(null);
+          console.log("[trf-ui] discovery menu items loaded into side menu", {
+            count: items.length,
+            ids: items.map((item) => item.id)
+          });
         }
       } catch (error) {
         if (!cancelled) {
           setDiscoveryItems([]);
+          const message =
+            error instanceof Error && error.message
+              ? error.message
+              : "Could not load discovery menu.";
+          setDiscoveryError(message);
         }
         console.error("[trf-ui] failed to fetch discovery menu", error);
       }
@@ -199,6 +217,11 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
       </div>
 
       <div className="flex-1 overflow-y-auto px-3 py-4">
+        {discoveryError && (
+          <div className="mb-3 rounded border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+            {discoveryError}
+          </div>
+        )}
         {renderItems(sideMenuItems)}
       </div>
     </div>
