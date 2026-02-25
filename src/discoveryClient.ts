@@ -89,10 +89,6 @@ const byOrder = (a: DiscoveryMenuEntry, b: DiscoveryMenuEntry) => {
   return aOrder - bOrder;
 };
 
-const isOrganizationMenuEntry = (entry: DiscoveryMenuEntry) => {
-  return entry.id === "portal-home" || entry.path === "/app/manage-organization";
-};
-
 const mapMenuEntry = (entry: DiscoveryMenuEntry): MenuItem => {
   const item: MenuItem = {
     id: `discovery-${entry.id}`,
@@ -115,7 +111,7 @@ export const mapDiscoveryMenuToMenuItems = (
   const fallbackMenus = response.menus?.[DEFAULT_DISCOVERY_MENU_GROUP];
   const entries = preferredMenus ?? fallbackMenus ?? [];
 
-  return entries.filter((entry) => !isOrganizationMenuEntry(entry)).sort(byOrder).map(mapMenuEntry);
+  return entries.sort(byOrder).map(mapMenuEntry);
 };
 
 export const fetchDiscoveryMenuItems = async (

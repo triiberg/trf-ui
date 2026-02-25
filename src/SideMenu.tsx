@@ -33,7 +33,10 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
   const [discoveryError, setDiscoveryError] = useState<string | null>(null);
 
   const sideMenuItems = useMemo(() => {
-    return [...menuStructure, ...discoveryItems];
+    if (discoveryItems.length > 0) {
+      return discoveryItems;
+    }
+    return menuStructure;
   }, [discoveryItems]);
 
   const isActive = (item: MenuItem) => {
