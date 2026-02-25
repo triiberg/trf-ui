@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { fetchDiscoveryMenuItems } from "./discoveryClient";
+import { getOrganizationNameFromJwt } from "./jwt";
 import { menuStructure } from "./menu";
 import type { AppBaseUrls, AppId, DiscoveryMenuConfig, MenuItem } from "./types";
 import { TRF_UI_VERSION } from "./version";
@@ -31,6 +32,11 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
   const [mobileOpen, setMobileOpen] = useState(false);
   const [discoveryItems, setDiscoveryItems] = useState<MenuItem[]>([]);
   const [discoveryError, setDiscoveryError] = useState<string | null>(null);
+  const [orgName, setOrgName] = useState<string | null>(null);
+
+  useEffect(() => {
+    setOrgName(getOrganizationNameFromJwt(discovery?.authCookieName));
+  }, [discovery?.authCookieName]);
 
   const sideMenuItems = useMemo(() => {
     if (discoveryItems.length > 0) {
@@ -207,17 +213,20 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
     );
   };
 
+  const homeUrl = "https://login.trf.is/app/manage-organization";
+
   const MenuContent = (
     <div className="flex flex-col h-full">
-      <div className="flex items-center gap-3 px-4 py-4 border-b border-slate-200">
+      <a href={homeUrl} className="flex items-center gap-3 px-4 py-4 border-b border-slate-200 no-underline hover:bg-slate-50 transition">
         <div className="h-8 w-8 bg-slate-900 rounded-lg flex items-center justify-center">
           <span className="text-white font-semibold text-[10px] tracking-wider">TRF</span>
         </div>
-        <div className="flex-1">
+        <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-slate-900">TRF.is</p>
           <p className="text-xs text-slate-500">Business tools in one place.</p>
+          {orgName && <p className="text-xs text-slate-400 truncate">{orgName}</p>}
         </div>
-      </div>
+      </a>
 
       <div className="flex-1 overflow-y-auto px-3 py-4">
         {discoveryError && (
@@ -240,15 +249,16 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
   return (
     <>
       <div className="md:hidden border-b border-slate-200 px-4 py-3 flex items-center justify-between bg-white">
-        <div className="flex items-center gap-3">
+        <a href={homeUrl} className="flex items-center gap-3 no-underline">
           <div className="h-7 w-7 bg-slate-900 rounded-lg flex items-center justify-center">
             <span className="text-white font-semibold text-[9px] tracking-wider">TRF</span>
           </div>
-          <div>
+          <div className="min-w-0">
             <p className="text-sm font-semibold text-slate-900">TRF.is</p>
             <p className="text-[11px] text-slate-500">Business tools in one place.</p>
+            {orgName && <p className="text-[11px] text-slate-400 truncate">{orgName}</p>}
           </div>
-        </div>
+        </a>
         <button
           type="button"
           className="rounded-lg border border-slate-300 px-2 py-1 text-xs text-slate-700"

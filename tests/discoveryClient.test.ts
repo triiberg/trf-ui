@@ -40,6 +40,13 @@ test("mapDiscoveryMenuToMenuItems sorts entries and keeps enabled state", () => 
 
   assert.deepEqual(items, [
     {
+      id: "discovery-portal-home",
+      label: "Organization",
+      appId: "portal",
+      path: "/app/manage-organization",
+      disabled: false
+    },
+    {
       id: "discovery-ledger-home",
       label: "Ledger",
       appId: "ledger",

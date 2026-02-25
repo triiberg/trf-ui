@@ -1,1 +1,1 @@
-export const TRF_UI_VERSION = "v0.1.2";
+export const TRF_UI_VERSION = "v0.2.0";
