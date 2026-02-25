@@ -9,10 +9,11 @@ import type { DiscoveryMenuConfig, MenuItem } from "./types";
 type DiscoveryMenuEntry = {
   id: string;
   label: string;
-  path: string;
+  path?: string;
   app_key: string;
   enabled: boolean;
   order?: number;
+  items?: DiscoveryMenuEntry[];
 };
 
 type DiscoveryMenuResponse = {
@@ -93,13 +94,17 @@ const isOrganizationMenuEntry = (entry: DiscoveryMenuEntry) => {
 };
 
 const mapMenuEntry = (entry: DiscoveryMenuEntry): MenuItem => {
-  return {
+  const item: MenuItem = {
     id: `discovery-${entry.id}`,
     label: entry.label,
     appId: entry.app_key,
     path: entry.path,
     disabled: entry.enabled === false
   };
+  if (entry.items && entry.items.length > 0) {
+    item.children = entry.items.sort(byOrder).map(mapMenuEntry);
+  }
+  return item;
 };
 
 export const mapDiscoveryMenuToMenuItems = (
