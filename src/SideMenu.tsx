@@ -33,12 +33,16 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
   const [discoveryItems, setDiscoveryItems] = useState<MenuItem[]>([]);
   const [discoveryError, setDiscoveryError] = useState<string | null>(null);
   const [orgName, setOrgName] = useState<string | null>(null);
+  const [authVersion, setAuthVersion] = useState(0);
 
   useEffect(() => {
-    const readOrgName = () => setOrgName(getOrganizationNameFromJwt(discovery?.authCookieName));
-    readOrgName();
-    window.addEventListener("trf:auth-changed", readOrgName);
-    return () => window.removeEventListener("trf:auth-changed", readOrgName);
+    const onAuthChanged = () => {
+      setOrgName(getOrganizationNameFromJwt(discovery?.authCookieName));
+      setAuthVersion((v) => v + 1);
+    };
+    onAuthChanged();
+    window.addEventListener("trf:auth-changed", onAuthChanged);
+    return () => window.removeEventListener("trf:auth-changed", onAuthChanged);
   }, [discovery?.authCookieName]);
 
   const sideMenuItems = useMemo(() => {
@@ -112,7 +116,8 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
     discovery?.authCookieName,
     discovery?.credentials,
     discovery?.ifMatch,
-    discovery?.menuGroup
+    discovery?.menuGroup,
+    authVersion
   ]);
 
   useEffect(() => {
