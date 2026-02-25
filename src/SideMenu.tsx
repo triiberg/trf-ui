@@ -35,7 +35,10 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
   const [orgName, setOrgName] = useState<string | null>(null);
 
   useEffect(() => {
-    setOrgName(getOrganizationNameFromJwt(discovery?.authCookieName));
+    const readOrgName = () => setOrgName(getOrganizationNameFromJwt(discovery?.authCookieName));
+    readOrgName();
+    window.addEventListener("trf:auth-changed", readOrgName);
+    return () => window.removeEventListener("trf:auth-changed", readOrgName);
   }, [discovery?.authCookieName]);
 
   const sideMenuItems = useMemo(() => {
