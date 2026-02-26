@@ -11,6 +11,7 @@ type SideMenuProps = {
   baseUrls: AppBaseUrls;
   className?: string;
   discovery?: DiscoveryMenuConfig;
+  orgSlug?: string;
 };
 
 const DEFAULT_OPEN_BY_APP: Record<string, string> = {
@@ -23,7 +24,14 @@ const joinUrl = (base: string, path: string) => {
   return `${trimmedBase}/${trimmedPath}`;
 };
 
-const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, discovery }) => {
+const injectSlug = (path: string, slug?: string): string => {
+  if (!slug || !path) return path;
+  if (path === "/app" || path === "/app/") return `/app/${slug}`;
+  if (path.startsWith("/app/")) return `/app/${slug}/${path.slice(5)}`;
+  return path;
+};
+
+const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, discovery, orgSlug }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [openSectionId, setOpenSectionId] = useState<string | null>(
@@ -35,15 +43,17 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
   const [orgName, setOrgName] = useState<string | null>(null);
   const [authVersion, setAuthVersion] = useState(0);
 
+  const authCookieName = orgSlug ? `trf_jwt_${orgSlug}` : discovery?.authCookieName;
+
   useEffect(() => {
     const onAuthChanged = () => {
-      setOrgName(getOrganizationNameFromJwt(discovery?.authCookieName));
+      setOrgName(getOrganizationNameFromJwt(authCookieName));
       setAuthVersion((v) => v + 1);
     };
     onAuthChanged();
     window.addEventListener("trf:auth-changed", onAuthChanged);
     return () => window.removeEventListener("trf:auth-changed", onAuthChanged);
-  }, [discovery?.authCookieName]);
+  }, [authCookieName]);
 
   const sideMenuItems = useMemo(() => {
     if (discoveryItems.length > 0) {
@@ -55,8 +65,9 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
   const isActive = (item: MenuItem) => {
     if (!item.path) return false;
     if (item.appId && item.appId !== currentAppId) return false;
-    if (item.path === "/app") return location.pathname === "/app";
-    return location.pathname.startsWith(item.path);
+    const slugPath = injectSlug(item.path, orgSlug);
+    if (slugPath === "/app" || slugPath === `/app/${orgSlug}`) return location.pathname === slugPath;
+    return location.pathname.startsWith(slugPath);
   };
 
   const hasActiveChild = (item: MenuItem): boolean => {
@@ -79,7 +90,7 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
         const items = await fetchDiscoveryMenuItems({
           menuUrl: discovery?.menuUrl,
           authToken: discovery?.authToken,
-          authCookieName: discovery?.authCookieName,
+          authCookieName: authCookieName,
           credentials: discovery?.credentials,
           ifMatch: discovery?.ifMatch,
           menuGroup: discovery?.menuGroup
@@ -113,7 +124,7 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
   }, [
     discovery?.menuUrl,
     discovery?.authToken,
-    discovery?.authCookieName,
+    authCookieName,
     discovery?.credentials,
     discovery?.ifMatch,
     discovery?.menuGroup,
@@ -146,7 +157,7 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
     if (!item.path || !item.appId) return null;
     const base = baseUrls[item.appId];
     if (!base) return null;
-    return joinUrl(base, item.path);
+    return joinUrl(base, injectSlug(item.path, orgSlug));
   };
 
   const handleItemClick = (item: MenuItem) => {
@@ -154,7 +165,7 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
 
     const isInternal = item.path && (!item.appId || item.appId === currentAppId);
     if (isInternal && item.path) {
-      navigate(item.path);
+      navigate(injectSlug(item.path, orgSlug));
       setMobileOpen(false);
       return;
     }
@@ -221,7 +232,10 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
     );
   };
 
-  const homeUrl = "https://login.trf.is/app/manage-organization";
+  const portalBase = baseUrls.portal || "https://login.trf.is";
+  const homeUrl = orgSlug
+    ? `${portalBase}/app/${orgSlug}/manage-organization/list`
+    : `${portalBase}/app/manage-organization`;
 
   const MenuContent = (
     <div className="flex flex-col h-full">
