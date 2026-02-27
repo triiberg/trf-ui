@@ -11,16 +11,24 @@ export class TranslationClient {
   private loaded = false;
   private lang: string;
   private suggested: Set<string> = new Set();
+  private loadPromise: Promise<void> | null = null;
 
   constructor(lang: string = "en") {
     this.lang = lang;
   }
 
-  async load(): Promise<void> {
+  load(): Promise<void> {
     if (this.loaded) {
-      return;
+      return Promise.resolve();
     }
+    if (this.loadPromise) {
+      return this.loadPromise;
+    }
+    this.loadPromise = this._doLoad();
+    return this.loadPromise;
+  }
 
+  private async _doLoad(): Promise<void> {
     try {
       const response = await fetch(DEFAULT_TRANSLATIONS_URL);
       if (!response.ok) {
@@ -36,6 +44,11 @@ export class TranslationClient {
         this.map.set(key, langs);
       }
       this.loaded = true;
+      console.log("[trf-ui] translations loaded", {
+        lang: this.lang,
+        keys: this.map.size,
+        sample: [...this.map.keys()].slice(0, 3)
+      });
     } catch (err) {
       console.warn("[trf-ui] translations fetch error", err);
     }
