@@ -50,6 +50,14 @@ export class TranslationClient {
     return defaultText;
   }
 
+  dump(): Record<string, Record<string, string>> {
+    const result: Record<string, Record<string, string>> = {};
+    for (const [key, langs] of this.map) {
+      result[key] = { ...langs };
+    }
+    return result;
+  }
+
   private suggest(key: string, defaultText: string): void {
     if (this.suggested.has(key)) {
       return;
