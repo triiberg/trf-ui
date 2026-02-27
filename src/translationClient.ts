@@ -63,6 +63,13 @@ export class TranslationClient {
     return defaultText;
   }
 
+  setLang(lang: string): void {
+    this.lang = lang;
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("trf:lang-changed", { detail: lang }));
+    }
+  }
+
   dump(): Record<string, Record<string, string>> {
     const result: Record<string, Record<string, string>> = {};
     for (const [key, langs] of this.map) {
