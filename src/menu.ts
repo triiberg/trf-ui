@@ -21,6 +21,7 @@ export const ledgerMenu: MenuItem = {
     { id: "ledger-mappings",   label: "Account Mappings",  appId: "ledger", path: "/app/mappings" },
     { id: "ledger-taxes",      label: "Tax Rates",         appId: "ledger", path: "/app/tax-rates" },
     { id: "ledger-dimensions", label: "Dimensions",        appId: "ledger", path: "/app/dimension-types" },
+    { id: "ledger-units",      label: "Units",             appId: "ledger", path: "/app/units" },
   ]
 };
 
