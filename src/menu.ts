@@ -9,4 +9,19 @@ export const organizationMenu: MenuItem = {
   ]
 };
 
-export const menuStructure: MenuItem[] = [organizationMenu];
+export const ledgerMenu: MenuItem = {
+  id: "ledger-home",
+  label: "Ledger",
+  appId: "ledger",
+  children: [
+    { id: "ledger-accounts",   label: "Accounts",         appId: "ledger", path: "/app/accounts" },
+    { id: "ledger-periods",    label: "Periods",           appId: "ledger", path: "/app/periods" },
+    { id: "ledger-entries",    label: "Entries",           appId: "ledger", path: "/app/entries" },
+    { id: "ledger-currencies", label: "Currencies",        appId: "ledger", path: "/app/currencies" },
+    { id: "ledger-mappings",   label: "Account Mappings",  appId: "ledger", path: "/app/mappings" },
+    { id: "ledger-taxes",      label: "Tax Rates",         appId: "ledger", path: "/app/tax-rates" },
+    { id: "ledger-dimensions", label: "Dimensions",        appId: "ledger", path: "/app/dimension-types" },
+  ]
+};
+
+export const menuStructure: MenuItem[] = [organizationMenu, ledgerMenu];
