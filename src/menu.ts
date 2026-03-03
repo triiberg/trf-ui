@@ -25,4 +25,13 @@ export const ledgerMenu: MenuItem = {
   ]
 };
 
-export const menuStructure: MenuItem[] = [organizationMenu, ledgerMenu];
+export const invoicesMenu: MenuItem = {
+  id: "invoices-home",
+  label: "Invoices",
+  appId: "invoices",
+  children: [
+    { id: "invoices-list", label: "Invoices", appId: "invoices", path: "/app/invoices" },
+  ]
+};
+
+export const menuStructure: MenuItem[] = [organizationMenu, ledgerMenu, invoicesMenu];
