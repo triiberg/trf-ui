@@ -4,4 +4,5 @@ export { DEFAULT_DISCOVERY_MENU_GROUP, DEFAULT_DISCOVERY_MENU_URL } from "./conf
 export { fetchDiscoveryMenuItems, mapDiscoveryMenuToMenuItems } from "./discoveryClient";
 export type { AppBaseUrls, AppId, DiscoveryMenuConfig, MenuItem } from "./types";
 export { TRF_UI_VERSION } from "./version";
+export { logout } from "./logout";
 export { TranslationClient } from "./translationClient";

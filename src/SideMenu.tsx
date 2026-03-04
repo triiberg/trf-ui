@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { fetchDiscoveryMenuItems } from "./discoveryClient";
 import { getOrganizationNameFromJwt } from "./jwt";
+import { logout } from "./logout";
 import { menuStructure } from "./menu";
 import type { AppBaseUrls, AppId, DiscoveryMenuConfig, MenuItem } from "./types";
 import { TRF_UI_VERSION } from "./version";
@@ -257,6 +258,16 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
           </div>
         )}
         {renderItems(sideMenuItems)}
+      </div>
+
+      <div className="border-t border-slate-200 px-3 py-3">
+        <button
+          type="button"
+          onClick={() => logout(`${baseUrls.portal ?? "https://login.trf.is"}/`)}
+          className="w-full rounded-lg px-3 py-2 text-sm text-slate-500 hover:bg-slate-50 hover:text-slate-700 transition text-left"
+        >
+          Sign out
+        </button>
       </div>
     </div>
   );
