@@ -18,6 +18,7 @@ type DiscoveryMenuEntry = {
 
 type DiscoveryMenuResponse = {
   menus?: Record<string, DiscoveryMenuEntry[] | undefined>;
+  base_urls?: Record<string, string>;
 };
 
 export type DiscoveryMenuClientConfig = DiscoveryMenuConfig & {
@@ -103,20 +104,33 @@ const mapMenuEntry = (entry: DiscoveryMenuEntry): MenuItem => {
   return item;
 };
 
-export const mapDiscoveryMenuToMenuItems = (
+export type DiscoveryMenuResult = {
+  items: MenuItem[];
+  baseUrls: Record<string, string>;
+};
+
+export const mapDiscoveryMenuResponse = (
   response: DiscoveryMenuResponse,
   menuGroup: string = DEFAULT_DISCOVERY_MENU_GROUP
-): MenuItem[] => {
+): DiscoveryMenuResult => {
   const preferredMenus = response.menus?.[menuGroup];
   const fallbackMenus = response.menus?.[DEFAULT_DISCOVERY_MENU_GROUP];
   const entries = preferredMenus ?? fallbackMenus ?? [];
 
-  return entries.sort(byOrder).map(mapMenuEntry);
+  return {
+    items: entries.sort(byOrder).map(mapMenuEntry),
+    baseUrls: response.base_urls ?? {}
+  };
 };
 
-export const fetchDiscoveryMenuItems = async (
+export const mapDiscoveryMenuToMenuItems = (
+  response: DiscoveryMenuResponse,
+  menuGroup: string = DEFAULT_DISCOVERY_MENU_GROUP
+): MenuItem[] => mapDiscoveryMenuResponse(response, menuGroup).items;
+
+export const fetchDiscoveryMenu = async (
   config: DiscoveryMenuClientConfig = {}
-): Promise<MenuItem[]> => {
+): Promise<DiscoveryMenuResult> => {
   const menuUrl = config.menuUrl ?? DEFAULT_DISCOVERY_MENU_URL;
   const menuGroup = config.menuGroup ?? DEFAULT_DISCOVERY_MENU_GROUP;
   const fetchImpl = config.fetchImpl ?? fetch;
@@ -168,14 +182,15 @@ export const fetchDiscoveryMenuItems = async (
   }
 
   const data = (await response.json()) as DiscoveryMenuResponse;
-  const items = mapDiscoveryMenuToMenuItems(data, menuGroup);
+  const result = mapDiscoveryMenuResponse(data, menuGroup);
 
   console.log("[trf-ui] discovery menu retrieved", {
     menuUrl,
     menuGroup,
     status: response.status,
-    count: items.length,
-    items: items.map((item) => ({
+    count: result.items.length,
+    baseUrlKeys: Object.keys(result.baseUrls),
+    items: result.items.map((item) => ({
       id: item.id,
       label: item.label,
       path: item.path,
@@ -183,5 +198,12 @@ export const fetchDiscoveryMenuItems = async (
     }))
   });
 
-  return items;
+  return result;
+};
+
+export const fetchDiscoveryMenuItems = async (
+  config: DiscoveryMenuClientConfig = {}
+): Promise<MenuItem[]> => {
+  const result = await fetchDiscoveryMenu(config);
+  return result.items;
 };

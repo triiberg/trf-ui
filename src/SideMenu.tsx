@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { fetchDiscoveryMenuItems } from "./discoveryClient";
+import { fetchDiscoveryMenu } from "./discoveryClient";
 import { getOrganizationNameFromJwt } from "./jwt";
 import { logout } from "./logout";
 import { menuStructure } from "./menu";
@@ -9,7 +9,7 @@ import { TRF_UI_VERSION } from "./version";
 
 type SideMenuProps = {
   currentAppId: AppId;
-  baseUrls: AppBaseUrls;
+  baseUrls?: AppBaseUrls;
   className?: string;
   discovery?: DiscoveryMenuConfig;
   orgSlug?: string;
@@ -40,6 +40,7 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
   );
   const [mobileOpen, setMobileOpen] = useState(false);
   const [discoveryItems, setDiscoveryItems] = useState<MenuItem[]>([]);
+  const [discoveryBaseUrls, setDiscoveryBaseUrls] = useState<AppBaseUrls>({});
   const [discoveryError, setDiscoveryError] = useState<string | null>(null);
   const [orgName, setOrgName] = useState<string | null>(null);
   const [authVersion, setAuthVersion] = useState(0);
@@ -88,7 +89,7 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
       });
 
       try {
-        const items = await fetchDiscoveryMenuItems({
+        const result = await fetchDiscoveryMenu({
           menuUrl: discovery?.menuUrl,
           authToken: discovery?.authToken,
           authCookieName: authCookieName,
@@ -97,11 +98,12 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
           menuGroup: discovery?.menuGroup
         });
         if (!cancelled) {
-          setDiscoveryItems(items);
+          setDiscoveryItems(result.items);
+          setDiscoveryBaseUrls(result.baseUrls);
           setDiscoveryError(null);
           console.log("[trf-ui] discovery menu items loaded into side menu", {
-            count: items.length,
-            ids: items.map((item) => item.id)
+            count: result.items.length,
+            ids: result.items.map((item) => item.id)
           });
         }
       } catch (error) {
@@ -153,10 +155,12 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
     setOpenSectionId((prev) => (prev === id ? null : id));
   };
 
+  const effectiveBaseUrls = { ...baseUrls, ...discoveryBaseUrls };
+
   const resolveExternalUrl = (item: MenuItem) => {
     if (item.externalUrl) return item.externalUrl;
     if (!item.path || !item.appId) return null;
-    const base = baseUrls[item.appId];
+    const base = effectiveBaseUrls[item.appId];
     if (!base) return null;
     return joinUrl(base, injectSlug(item.path, orgSlug));
   };
@@ -233,7 +237,7 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
     );
   };
 
-  const portalBase = baseUrls.portal || "https://login.trf.is";
+  const portalBase = effectiveBaseUrls.portal || "https://login.trf.is";
   const homeUrl = orgSlug
     ? `${portalBase}/app/${orgSlug}/manage-organization/list`
     : `${portalBase}/app/manage-organization`;
@@ -263,7 +267,7 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
       <div className="border-t border-slate-200 px-3 py-3">
         <button
           type="button"
-          onClick={() => logout(`${baseUrls.portal ?? "https://login.trf.is"}/`)}
+          onClick={() => logout(`${effectiveBaseUrls.portal ?? "https://login.trf.is"}/`)}
           className="w-full rounded-lg px-3 py-2 text-sm text-slate-500 hover:bg-slate-50 hover:text-slate-700 transition text-left"
         >
           Sign out
@@ -273,7 +277,7 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
   );
 
   const navClassName = [
-    "hidden md:flex md:flex-col md:w-64 lg:w-72 bg-white border-r border-slate-200",
+    "hidden md:flex md:flex-col md:w-64 lg:w-72 bg-gradient-to-b from-white to-sky-50 border-r border-slate-200",
     className
   ]
     .filter(Boolean)
@@ -294,10 +298,24 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
         </a>
         <button
           type="button"
-          className="rounded-lg border border-slate-300 px-2 py-1 text-xs text-slate-700"
+          className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-700 flex items-center gap-1.5"
           onClick={() => setMobileOpen((prev) => !prev)}
         >
-          {mobileOpen ? "Close" : "Menu"}
+          {mobileOpen ? (
+            <>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              Close
+            </>
+          ) : (
+            <>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+              Menu
+            </>
+          )}
         </button>
       </div>
 
@@ -307,7 +325,7 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
           onClick={() => setMobileOpen(false)}
         >
           <div
-            className="absolute left-0 top-0 w-64 h-full bg-white shadow-xl z-50 overflow-y-auto"
+            className="absolute left-0 top-0 w-64 h-full bg-gradient-to-b from-white to-sky-50 shadow-xl z-50 overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             {MenuContent}
