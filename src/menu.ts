@@ -1,5 +1,16 @@
 import type { MenuItem } from "./types";
 
+export const aiMenu: MenuItem = {
+  id: "ai-home",
+  label: "AI",
+  appId: "ai",
+  children: [
+    { id: "ai-chat",     label: "Chat",     appId: "ai", path: "/app/chat" },
+    { id: "ai-history",  label: "History",  appId: "ai", path: "/app/history" },
+    { id: "ai-settings", label: "Settings", appId: "ai", path: "/app/settings" },
+  ]
+};
+
 export const organizationMenu: MenuItem = {
   id: "org",
   label: "Organization",
@@ -75,4 +86,4 @@ export const settingsMenu: MenuItem = {
   ]
 };
 
-export const menuStructure: MenuItem[] = [invoicesMenu, crmMenu, ledgerMenu, knowledgeMenu, settingsMenu, organizationMenu];
+export const menuStructure: MenuItem[] = [aiMenu, invoicesMenu, crmMenu, ledgerMenu, knowledgeMenu, settingsMenu, organizationMenu];
