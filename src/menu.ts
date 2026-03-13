@@ -76,22 +76,6 @@ export const purchaseMenu: MenuItem = {
   ]
 };
 
-export const knowledgeMenu: MenuItem = {
-  id: "knowledge-home",
-  label: "Knowledge",
-  appId: "knowledge",
-  children: [
-    { id: "knowledge-organization",   label: "Organisation",    appId: "knowledge", path: "/app/organization" },
-    { id: "knowledge-banks",          label: "Banks",           appId: "knowledge", path: "/app/banks" },
-    { id: "knowledge-employees",      label: "Employees",       appId: "knowledge", path: "/app/employees" },
-    { id: "knowledge-locations",      label: "Locations",       appId: "knowledge", path: "/app/locations" },
-    { id: "knowledge-projects",       label: "Projects",        appId: "knowledge", path: "/app/projects" },
-    { id: "knowledge-bank-types",     label: "Bank Types",      appId: "knowledge", path: "/app/bank-types" },
-    { id: "knowledge-location-types", label: "Location Types",  appId: "knowledge", path: "/app/location-types" },
-    { id: "knowledge-project-types",  label: "Project Types",   appId: "knowledge", path: "/app/project-types" },
-  ]
-};
-
 export const settingsMenu: MenuItem = {
   id: "settings-home",
   label: "Settings",
@@ -108,4 +92,4 @@ export const settingsMenu: MenuItem = {
   ]
 };
 
-export const menuStructure: MenuItem[] = [aiMenu, invoicesMenu, paymentsMenu, purchaseMenu, crmMenu, ledgerMenu, knowledgeMenu, settingsMenu, organizationMenu];
+export const menuStructure: MenuItem[] = [aiMenu, invoicesMenu, paymentsMenu, purchaseMenu, crmMenu, ledgerMenu, settingsMenu, organizationMenu];
