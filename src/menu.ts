@@ -59,8 +59,9 @@ export const paymentsMenu: MenuItem = {
   label: "Payments",
   appId: "payments",
   children: [
-    { id: "payments-list",   label: "Payments",         appId: "payments", path: "/app/payments" },
-    { id: "payments-series", label: "Payment Series",   appId: "payments", path: "/app/series" },
+    { id: "payments-list",     label: "Payments",       appId: "payments", path: "/app/payments" },
+    { id: "payments-series",   label: "Payment Series", appId: "payments", path: "/app/series" },
+    { id: "payments-settings", label: "Settings",       appId: "payments", path: "/app/settings" },
   ]
 };
 
