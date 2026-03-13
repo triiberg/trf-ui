@@ -1,6 +1,3 @@
-const COOKIE_PREFIX = "trf_jwt_";
-const MAIN_COOKIE = "jwt_token";
-
 const removeCookie = (name: string): void => {
   // Must match the domain used when the cookie was set (.trf.is in prod)
   const hostname = typeof window !== "undefined" ? window.location.hostname : "";
@@ -21,13 +18,10 @@ const removeCookie = (name: string): void => {
 export const logout = (redirectUrl?: string): void => {
   if (typeof document === "undefined") return;
 
-  // Remove main session cookie
-  removeCookie(MAIN_COOKIE);
-
-  // Remove all per-org cookies
+  // Remove all cookies accessible from this domain (covers *.trf.is)
   for (const chunk of document.cookie.split(";")) {
     const name = decodeURIComponent((chunk.split("=")[0] ?? "").trim());
-    if (name.startsWith(COOKIE_PREFIX)) {
+    if (name) {
       removeCookie(name);
     }
   }
