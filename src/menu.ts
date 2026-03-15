@@ -93,4 +93,13 @@ export const settingsMenu: MenuItem = {
   ]
 };
 
-export const menuStructure: MenuItem[] = [aiMenu, invoicesMenu, paymentsMenu, purchaseMenu, crmMenu, ledgerMenu, settingsMenu, organizationMenu];
+export const auditMenu: MenuItem = {
+  id: "audit-home",
+  label: "Audit",
+  appId: "audit",
+  children: [
+    { id: "audit-logs", label: "Audit Logs", appId: "audit", path: "/app/audit-logs" },
+  ]
+};
+
+export const menuStructure: MenuItem[] = [aiMenu, invoicesMenu, paymentsMenu, purchaseMenu, crmMenu, ledgerMenu, auditMenu, settingsMenu, organizationMenu];
