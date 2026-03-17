@@ -73,7 +73,7 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
     let checkPath: string | undefined = item.path ? injectSlug(item.path, orgSlug) : undefined;
     if (!checkPath && item.externalUrl) {
       try {
-        const parsed = new URL(item.externalUrl);
+        const parsed = new URL(injectSlug(item.externalUrl, orgSlug));
         if (parsed.origin === window.location.origin) {
           checkPath = parsed.pathname;
         }
@@ -82,7 +82,6 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
       }
     }
     if (!checkPath) return false;
-    if (item.appId && item.appId !== currentAppId && !item.externalUrl) return false;
     if (checkPath === "/app" || checkPath === `/app/${orgSlug}`) return location.pathname === checkPath;
     return location.pathname.startsWith(checkPath);
   };
@@ -207,17 +206,21 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
   const handleItemClick = (item: MenuItem) => {
     if (item.disabled) return;
 
-    const isInternal = item.path && (!item.appId || item.appId === currentAppId);
-    if (isInternal && item.path) {
-      navigate(injectSlug(item.path, orgSlug));
-      setMobileOpen(false);
-      return;
+    const url = resolveExternalUrl(item);
+    if (!url) return;
+
+    try {
+      const parsed = new URL(url);
+      if (parsed.origin === window.location.origin) {
+        navigate(parsed.pathname);
+        setMobileOpen(false);
+        return;
+      }
+    } catch {
+      // not a full URL — fall through
     }
 
-    const externalUrl = resolveExternalUrl(item);
-    if (externalUrl) {
-      window.location.href = externalUrl;
-    }
+    window.location.href = url;
   };
 
   const renderItems = (items: MenuItem[], depth = 0) => {
