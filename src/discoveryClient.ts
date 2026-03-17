@@ -9,6 +9,7 @@ import type { DiscoveryMenuConfig, MenuItem } from "./types";
 type DiscoveryMenuEntry = {
   id: string;
   label: string;
+  url?: string;
   path?: string;
   app_key: string;
   enabled: boolean;
@@ -94,8 +95,9 @@ const mapMenuEntry = (entry: DiscoveryMenuEntry): MenuItem => {
   const item: MenuItem = {
     id: `discovery-${entry.id}`,
     label: entry.label,
-    appId: entry.app_key,
+    appId: entry.app_key || undefined,
     path: entry.path,
+    externalUrl: entry.url,
     disabled: entry.enabled === false
   };
   if (entry.items && entry.items.length > 0) {

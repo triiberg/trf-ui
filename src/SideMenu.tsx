@@ -25,18 +25,23 @@ const joinUrl = (base: string, path: string) => {
   return `${trimmedBase}/${trimmedPath}`;
 };
 
-const injectSlug = (path: string, slug?: string): string => {
-  if (!slug || !path) return path;
-  if (path === "/app" || path === "/app/") return `/app/${slug}`;
-  if (path.startsWith("/app/")) return `/app/${slug}/${path.slice(5)}`;
-  return path;
+const injectSlug = (pathOrUrl: string, slug?: string): string => {
+  if (!slug || !pathOrUrl) return pathOrUrl;
+  if (pathOrUrl.includes("://")) {
+    const appIdx = pathOrUrl.indexOf("/app/");
+    if (appIdx === -1) return pathOrUrl;
+    return pathOrUrl.slice(0, appIdx) + `/app/${slug}/` + pathOrUrl.slice(appIdx + 5);
+  }
+  if (pathOrUrl === "/app" || pathOrUrl === "/app/") return `/app/${slug}`;
+  if (pathOrUrl.startsWith("/app/")) return `/app/${slug}/${pathOrUrl.slice(5)}`;
+  return pathOrUrl;
 };
 
 const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, discovery, orgSlug }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [openSectionId, setOpenSectionId] = useState<string | null>(
-    DEFAULT_OPEN_BY_APP[currentAppId] ?? null
+  const [openSections, setOpenSections] = useState<Set<string>>(
+    new Set(DEFAULT_OPEN_BY_APP[currentAppId] ? [DEFAULT_OPEN_BY_APP[currentAppId]] : [])
   );
   const [mobileOpen, setMobileOpen] = useState(false);
   const [discoveryItems, setDiscoveryItems] = useState<MenuItem[]>([]);
@@ -135,30 +140,55 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
   ]);
 
   useEffect(() => {
-    const activeTop = sideMenuItems.find(
-      (section) => isActive(section) || hasActiveChild(section)
-    );
-    if (activeTop) {
-      setOpenSectionId(activeTop.id);
-      return;
+    const ancestorIds = new Set<string>();
+    const collectAncestors = (items: MenuItem[], targetActive: boolean = false): boolean => {
+      for (const item of items) {
+        const selfActive = isActive(item);
+        const childActive = item.children ? collectAncestors(item.children) : false;
+        if (selfActive || childActive) {
+          ancestorIds.add(item.id);
+          return true;
+        }
+      }
+      return targetActive;
+    };
+    for (const section of sideMenuItems) {
+      if (isActive(section) || hasActiveChild(section)) {
+        ancestorIds.add(section.id);
+        if (section.children) collectAncestors(section.children);
+      }
     }
-    const fallback = DEFAULT_OPEN_BY_APP[currentAppId] ?? null;
-    setOpenSectionId(fallback);
+    if (ancestorIds.size > 0) {
+      setOpenSections(prev => {
+        const next = new Set(prev);
+        for (const id of ancestorIds) next.add(id);
+        return next;
+      });
+    } else {
+      const fallback = DEFAULT_OPEN_BY_APP[currentAppId];
+      if (fallback) {
+        setOpenSections(new Set([fallback]));
+      }
+    }
   }, [location.pathname, currentAppId, sideMenuItems]);
 
   useEffect(() => {
     console.info(`[trf-ui] version ${TRF_UI_VERSION}`);
   }, []);
 
-  const handleTopLevelToggle = (id: string, disabled?: boolean) => {
+  const handleToggle = (id: string, disabled?: boolean) => {
     if (disabled) return;
-    setOpenSectionId((prev) => (prev === id ? null : id));
+    setOpenSections(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
   };
 
   const effectiveBaseUrls = { ...baseUrls, ...discoveryBaseUrls };
 
   const resolveExternalUrl = (item: MenuItem) => {
-    if (item.externalUrl) return item.externalUrl;
+    if (item.externalUrl) return injectSlug(item.externalUrl, orgSlug);
     if (!item.path || !item.appId) return null;
     const base = effectiveBaseUrls[item.appId];
     if (!base) return null;
@@ -204,28 +234,22 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
                 type="button"
                 className={`${baseClasses} ${stateClasses} ${indent}`}
                 onClick={() => {
-                  if (hasChildren && depth === 0) {
-                    handleTopLevelToggle(item.id, item.disabled);
+                  if (hasChildren) {
+                    handleToggle(item.id, item.disabled);
                   } else {
                     handleItemClick(item);
                   }
                 }}
               >
                 <span className="truncate text-base">{item.label}</span>
-                {hasChildren && depth === 0 && (
+                {hasChildren && (
                   <span className="ml-2 text-xs text-slate-400">
-                    {openSectionId === item.id ? "-" : "+"}
+                    {openSections.has(item.id) ? "-" : "+"}
                   </span>
                 )}
               </button>
 
-              {hasChildren && depth === 0 && openSectionId === item.id && (
-                <div className="mt-1 ml-1 border-l border-slate-100 pl-2">
-                  {renderItems(item.children!, depth + 1)}
-                </div>
-              )}
-
-              {hasChildren && depth > 0 && (
+              {hasChildren && openSections.has(item.id) && (
                 <div className="mt-1 ml-1 border-l border-slate-100 pl-2">
                   {renderItems(item.children!, depth + 1)}
                 </div>
