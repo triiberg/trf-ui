@@ -1,7 +1,6 @@
 import {
   DEFAULT_DISCOVERY_AUTH_COOKIE_NAME,
   DEFAULT_DISCOVERY_FETCH_CREDENTIALS,
-  DEFAULT_DISCOVERY_MENU_GROUP,
   DEFAULT_DISCOVERY_MENU_URL
 } from "./config";
 import type { DiscoveryMenuConfig, MenuItem } from "./types";
@@ -10,7 +9,6 @@ type DiscoveryMenuEntry = {
   id: string;
   label: string;
   url?: string;
-  path?: string;
   app_key: string;
   enabled: boolean;
   order?: number;
@@ -18,7 +16,7 @@ type DiscoveryMenuEntry = {
 };
 
 type DiscoveryMenuResponse = {
-  menus?: Record<string, DiscoveryMenuEntry[] | undefined>;
+  menu?: DiscoveryMenuEntry[];
   base_urls?: Record<string, string>;
 };
 
@@ -96,7 +94,6 @@ const mapMenuEntry = (entry: DiscoveryMenuEntry): MenuItem => {
     id: `discovery-${entry.id}`,
     label: entry.label,
     appId: entry.app_key || undefined,
-    path: entry.path,
     externalUrl: entry.url,
     disabled: entry.enabled === false
   };
@@ -112,12 +109,9 @@ export type DiscoveryMenuResult = {
 };
 
 export const mapDiscoveryMenuResponse = (
-  response: DiscoveryMenuResponse,
-  menuGroup: string = DEFAULT_DISCOVERY_MENU_GROUP
+  response: DiscoveryMenuResponse
 ): DiscoveryMenuResult => {
-  const preferredMenus = response.menus?.[menuGroup];
-  const fallbackMenus = response.menus?.[DEFAULT_DISCOVERY_MENU_GROUP];
-  const entries = preferredMenus ?? fallbackMenus ?? [];
+  const entries = response.menu ?? [];
 
   return {
     items: entries.sort(byOrder).map(mapMenuEntry),
@@ -126,15 +120,13 @@ export const mapDiscoveryMenuResponse = (
 };
 
 export const mapDiscoveryMenuToMenuItems = (
-  response: DiscoveryMenuResponse,
-  menuGroup: string = DEFAULT_DISCOVERY_MENU_GROUP
-): MenuItem[] => mapDiscoveryMenuResponse(response, menuGroup).items;
+  response: DiscoveryMenuResponse
+): MenuItem[] => mapDiscoveryMenuResponse(response).items;
 
 export const fetchDiscoveryMenu = async (
   config: DiscoveryMenuClientConfig = {}
 ): Promise<DiscoveryMenuResult> => {
   const menuUrl = config.menuUrl ?? DEFAULT_DISCOVERY_MENU_URL;
-  const menuGroup = config.menuGroup ?? DEFAULT_DISCOVERY_MENU_GROUP;
   const fetchImpl = config.fetchImpl ?? fetch;
   const auth = resolveAuthToken(config);
 
@@ -144,12 +136,13 @@ export const fetchDiscoveryMenu = async (
       `Provide discovery.authToken or ensure "${auth.cookieName}" cookie is present.`;
     console.error("[trf-ui] discovery menu request blocked", {
       menuUrl,
-      menuGroup,
       reason: "missing_auth_token",
       authCookieName: auth.cookieName
     });
     throw new Error(message);
   }
+
+  const url = new URL(menuUrl);
 
   const headers: Record<string, string> = {};
   headers.Authorization = `Bearer ${auth.token}`;
@@ -160,14 +153,13 @@ export const fetchDiscoveryMenu = async (
   const credentials = config.credentials ?? DEFAULT_DISCOVERY_FETCH_CREDENTIALS;
 
   console.log("[trf-ui] calling discovery menu endpoint", {
-    menuUrl,
-    menuGroup,
+    menuUrl: url.toString(),
     authSource: auth.source,
     hasIfMatchHeader: Boolean(config.ifMatch),
     credentials
   });
 
-  const response = await fetchImpl(menuUrl, {
+  const response = await fetchImpl(url.toString(), {
     method: "GET",
     headers,
     credentials
@@ -175,8 +167,7 @@ export const fetchDiscoveryMenu = async (
 
   if (!response.ok) {
     console.error("[trf-ui] discovery menu request failed", {
-      menuUrl,
-      menuGroup,
+      menuUrl: url.toString(),
       status: response.status,
       statusText: response.statusText
     });
@@ -184,18 +175,17 @@ export const fetchDiscoveryMenu = async (
   }
 
   const data = (await response.json()) as DiscoveryMenuResponse;
-  const result = mapDiscoveryMenuResponse(data, menuGroup);
+  const result = mapDiscoveryMenuResponse(data);
 
   console.log("[trf-ui] discovery menu retrieved", {
-    menuUrl,
-    menuGroup,
+    menuUrl: url.toString(),
     status: response.status,
     count: result.items.length,
     baseUrlKeys: Object.keys(result.baseUrls),
     items: result.items.map((item) => ({
       id: item.id,
       label: item.label,
-      path: item.path,
+      externalUrl: item.externalUrl,
       disabled: Boolean(item.disabled)
     }))
   });

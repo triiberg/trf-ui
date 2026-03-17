@@ -25,5 +25,4 @@ export type DiscoveryMenuConfig = {
   authCookieName?: string;
   credentials?: RequestCredentials;
   ifMatch?: string;
-  menuGroup?: string;
 };

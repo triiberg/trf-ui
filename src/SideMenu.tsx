@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { fetchDiscoveryMenu } from "./discoveryClient";
 import { getOrganizationNameFromJwt } from "./jwt";
 import { logout } from "./logout";
@@ -12,7 +12,6 @@ type SideMenuProps = {
   baseUrls?: AppBaseUrls;
   className?: string;
   discovery?: DiscoveryMenuConfig;
-  orgSlug?: string;
 };
 
 const DEFAULT_OPEN_BY_APP: Record<string, string> = {
@@ -37,9 +36,10 @@ const injectSlug = (pathOrUrl: string, slug?: string): string => {
   return pathOrUrl;
 };
 
-const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, discovery, orgSlug }) => {
+const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, discovery }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { slug: orgSlug } = useParams<{ slug: string }>();
   const [openSections, setOpenSections] = useState<Set<string>>(
     new Set(DEFAULT_OPEN_BY_APP[currentAppId] ? [DEFAULT_OPEN_BY_APP[currentAppId]] : [])
   );
@@ -70,11 +70,21 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
   }, [discoveryItems]);
 
   const isActive = (item: MenuItem) => {
-    if (!item.path) return false;
-    if (item.appId && item.appId !== currentAppId) return false;
-    const slugPath = injectSlug(item.path, orgSlug);
-    if (slugPath === "/app" || slugPath === `/app/${orgSlug}`) return location.pathname === slugPath;
-    return location.pathname.startsWith(slugPath);
+    let checkPath: string | undefined = item.path ? injectSlug(item.path, orgSlug) : undefined;
+    if (!checkPath && item.externalUrl) {
+      try {
+        const parsed = new URL(item.externalUrl);
+        if (parsed.origin === window.location.origin) {
+          checkPath = parsed.pathname;
+        }
+      } catch {
+        // ignore invalid URLs
+      }
+    }
+    if (!checkPath) return false;
+    if (item.appId && item.appId !== currentAppId && !item.externalUrl) return false;
+    if (checkPath === "/app" || checkPath === `/app/${orgSlug}`) return location.pathname === checkPath;
+    return location.pathname.startsWith(checkPath);
   };
 
   const hasActiveChild = (item: MenuItem): boolean => {
@@ -88,7 +98,7 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
     const fetchMenuItems = async () => {
       console.log("[trf-ui] starting discovery menu fetch", {
         menuUrl: discovery?.menuUrl,
-        menuGroup: discovery?.menuGroup,
+        orgSlug,
         authTokenProvided: Boolean(discovery?.authToken),
         authCookieName: discovery?.authCookieName
       });
@@ -100,7 +110,6 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
           authCookieName: authCookieName,
           credentials: discovery?.credentials,
           ifMatch: discovery?.ifMatch,
-          menuGroup: discovery?.menuGroup
         });
         if (!cancelled) {
           setDiscoveryItems(result.items);
@@ -135,7 +144,7 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
     authCookieName,
     discovery?.credentials,
     discovery?.ifMatch,
-    discovery?.menuGroup,
+    orgSlug,
     authVersion
   ]);
 
