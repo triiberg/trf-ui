@@ -5,13 +5,20 @@ import { getOrganizationNameFromJwt } from "./jwt";
 import { logout } from "./logout";
 import { menuStructure } from "./menu";
 import type { AppBaseUrls, AppId, DiscoveryMenuConfig, MenuItem } from "./types";
+import { TranslationClient } from "./translationClient";
 import { TRF_UI_VERSION } from "./version";
+
+const LANGUAGES = [
+  { code: "en", label: "English" },
+  { code: "ee", label: "Eesti" },
+];
 
 type SideMenuProps = {
   currentAppId: AppId;
   baseUrls?: AppBaseUrls;
   className?: string;
   discovery?: DiscoveryMenuConfig;
+  translationClient?: TranslationClient;
 };
 
 const DEFAULT_OPEN_BY_APP: Record<string, string> = {
@@ -36,7 +43,7 @@ const injectSlug = (pathOrUrl: string, slug?: string): string => {
   return pathOrUrl;
 };
 
-const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, discovery }) => {
+const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, discovery, translationClient }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { slug: orgSlug } = useParams<{ slug: string }>();
@@ -49,6 +56,7 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
   const [discoveryError, setDiscoveryError] = useState<string | null>(null);
   const [orgName, setOrgName] = useState<string | null>(null);
   const [authVersion, setAuthVersion] = useState(0);
+  const [currentLang, setCurrentLang] = useState<string>(() => translationClient?.getLang() ?? "en");
 
   const authCookieName = orgSlug ? `trf_jwt_${orgSlug}` : discovery?.authCookieName;
 
@@ -61,6 +69,14 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
     window.addEventListener("trf:auth-changed", onAuthChanged);
     return () => window.removeEventListener("trf:auth-changed", onAuthChanged);
   }, [authCookieName]);
+
+  useEffect(() => {
+    const onLangChanged = (e: Event) => {
+      setCurrentLang((e as CustomEvent<string>).detail);
+    };
+    window.addEventListener("trf:lang-changed", onLangChanged);
+    return () => window.removeEventListener("trf:lang-changed", onLangChanged);
+  }, []);
 
   const sideMenuItems = useMemo(() => {
     if (discoveryItems.length > 0) {
@@ -300,7 +316,18 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
         {renderItems(sideMenuItems)}
       </div>
 
-      <div className="border-t border-slate-200 px-3 py-3">
+      <div className="border-t border-slate-200 px-3 py-3 space-y-1">
+        {translationClient && (
+          <select
+            value={currentLang}
+            onChange={(e) => translationClient.setLang(e.target.value)}
+            className="w-full rounded-lg px-3 py-2 text-sm text-slate-600 bg-white border border-slate-200 hover:border-slate-300 transition cursor-pointer focus:outline-none"
+          >
+            {LANGUAGES.map((l) => (
+              <option key={l.code} value={l.code}>{l.label}</option>
+            ))}
+          </select>
+        )}
         <button
           type="button"
           onClick={() => logout(`${effectiveBaseUrls.portal ?? "https://login.trf.is"}/`)}

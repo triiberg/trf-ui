@@ -63,6 +63,10 @@ export class TranslationClient {
     return defaultText;
   }
 
+  getLang(): string {
+    return this.lang;
+  }
+
   setLang(lang: string): void {
     this.lang = lang;
     if (typeof window !== "undefined") {
