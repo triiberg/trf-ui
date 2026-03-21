@@ -83,6 +83,11 @@ export class TranslationClient {
   }
 
   private suggest(key: string, defaultText: string): void {
+    // Only suggest after the translation list has loaded. Before load completes,
+    // the map is empty and every key would look missing — producing false suggestions.
+    if (!this.loaded) {
+      return;
+    }
     if (this.suggested.has(key)) {
       return;
     }
