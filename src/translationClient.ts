@@ -13,8 +13,11 @@ export class TranslationClient {
   private suggested: Set<string> = new Set();
   private loadPromise: Promise<void> | null = null;
 
+  private static readonly LANG_KEY = "trf:lang";
+
   constructor(lang: string = "en") {
-    this.lang = lang;
+    const stored = typeof localStorage !== "undefined" ? localStorage.getItem(TranslationClient.LANG_KEY) : null;
+    this.lang = stored ?? lang;
   }
 
   load(): Promise<void> {
@@ -69,6 +72,9 @@ export class TranslationClient {
 
   setLang(lang: string): void {
     this.lang = lang;
+    if (typeof localStorage !== "undefined") {
+      localStorage.setItem(TranslationClient.LANG_KEY, lang);
+    }
     if (typeof window !== "undefined") {
       window.dispatchEvent(new CustomEvent("trf:lang-changed", { detail: lang }));
     }
