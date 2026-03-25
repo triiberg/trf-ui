@@ -11,7 +11,7 @@ const SIZE: Record<InputSize, string> = {
 };
 
 export interface InputProps
-  extends React.InputHTMLAttributes<HTMLInputElement> {
+  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "size"> {
   /** Adds w-full. Defaults to true — set false for inline/filter inputs. */
   block?: boolean;
   size?: InputSize;

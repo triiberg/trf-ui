@@ -10,7 +10,7 @@ const SIZE: Record<InputSize, string> = {
 };
 
 export interface SelectProps
-  extends React.SelectHTMLAttributes<HTMLSelectElement> {
+  extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, "size"> {
   block?: boolean;
   size?: InputSize;
 }

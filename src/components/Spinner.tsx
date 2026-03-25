@@ -1,5 +1,3 @@
-import React from "react";
-
 export type SpinnerSize = "sm" | "md" | "lg";
 
 const SIZE: Record<SpinnerSize, string> = {
