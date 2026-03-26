@@ -99,7 +99,7 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
     }
     if (!checkPath) return false;
     if (checkPath === "/app" || checkPath === `/app/${orgSlug}`) return location.pathname === checkPath;
-    return location.pathname.startsWith(checkPath);
+    return location.pathname === checkPath || location.pathname.startsWith(checkPath + "/");
   };
 
   const hasActiveChild = (item: MenuItem): boolean => {
