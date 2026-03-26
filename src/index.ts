@@ -9,6 +9,14 @@ export { logout } from "./logout";
 export { TranslationClient } from "./translationClient";
 
 // UI components
+export { H1 } from "./components/H1";
+export type { H1Props } from "./components/H1";
+export { H2 } from "./components/H2";
+export type { H2Props } from "./components/H2";
+export { PageContainer } from "./components/PageContainer";
+export type { PageContainerProps, PageContainerSize } from "./components/PageContainer";
+export { Card } from "./components/Card";
+export type { CardProps } from "./components/Card";
 export { Button } from "./components/Button";
 export type { ButtonProps, ButtonVariant, ButtonSize } from "./components/Button";
 export { LinkButton } from "./components/LinkButton";
