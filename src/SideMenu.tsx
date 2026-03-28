@@ -297,16 +297,13 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
         <span style={{ fontSize: "1.25rem", fontWeight: 700, letterSpacing: "-0.02em", flexShrink: 0, ...gradientTextStyle }}>
           TRF.IS
         </span>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ fontSize: "0.8125rem", fontWeight: 600, color: T.fg, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-            Business tools in one place.
-          </p>
-          {orgName && (
+        {orgName && (
+          <div style={{ flex: 1, minWidth: 0 }}>
             <p style={{ fontSize: "0.75rem", color: T.fgMuted, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
               {orgName}
             </p>
-          )}
-        </div>
+          </div>
+        )}
       </a>
 
       {/* Nav items */}
@@ -376,10 +373,9 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
       >
         <a href={homeUrl} style={{ display: "flex", alignItems: "center", gap: "0.625rem", textDecoration: "none" }}>
           <span style={{ fontSize: "1.125rem", fontWeight: 700, letterSpacing: "-0.02em", ...gradientTextStyle }}>TRF.IS</span>
-          <div style={{ minWidth: 0 }}>
-            <p style={{ fontSize: "0.8125rem", fontWeight: 600, color: T.fg }}>Business tools in one place.</p>
-            {orgName && <p style={{ fontSize: "0.6875rem", color: T.fgMuted, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{orgName}</p>}
-          </div>
+          {orgName && (
+            <p style={{ fontSize: "0.6875rem", color: T.fgMuted, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0 }}>{orgName}</p>
+          )}
         </a>
         <button
           type="button"
