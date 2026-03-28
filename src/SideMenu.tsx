@@ -43,6 +43,29 @@ const injectSlug = (pathOrUrl: string, slug?: string): string => {
   return pathOrUrl;
 };
 
+// Design tokens matching the landing page
+const T = {
+  bg: "hsl(220,25%,8%)",
+  bgDeep: "hsl(220,20%,4%)",
+  muted: "hsl(220,20%,12%)",
+  border: "hsl(220,20%,15%)",
+  borderSubtle: "hsl(220,20%,13%)",
+  fg: "hsl(200,100%,95%)",
+  fgMuted: "hsl(215,20%,55%)",
+  fgDim: "hsl(215,20%,40%)",
+  primary: "hsl(185,100%,55%)",
+  primaryBg: "hsla(185,100%,55%,0.08)",
+  primaryBorder: "hsla(185,100%,55%,0.22)",
+  gradient: "linear-gradient(135deg, hsl(185,100%,55%), hsl(260,80%,60%), hsl(320,85%,55%))",
+};
+
+const gradientTextStyle: React.CSSProperties = {
+  background: T.gradient,
+  WebkitBackgroundClip: "text",
+  WebkitTextFillColor: "transparent",
+  backgroundClip: "text",
+};
+
 const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, discovery, translationClient }) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -79,9 +102,7 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
   }, []);
 
   const sideMenuItems = useMemo(() => {
-    if (discoveryItems.length > 0) {
-      return discoveryItems;
-    }
+    if (discoveryItems.length > 0) return discoveryItems;
     return menuStructure;
   }, [discoveryItems]);
 
@@ -90,12 +111,8 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
     if (!checkPath && item.externalUrl) {
       try {
         const parsed = new URL(injectSlug(item.externalUrl, orgSlug));
-        if (parsed.origin === window.location.origin) {
-          checkPath = parsed.pathname;
-        }
-      } catch {
-        // ignore invalid URLs
-      }
+        if (parsed.origin === window.location.origin) checkPath = parsed.pathname;
+      } catch { /* ignore */ }
     }
     if (!checkPath) return false;
     if (checkPath === "/app" || checkPath === `/app/${orgSlug}`) return location.pathname === checkPath;
@@ -109,15 +126,12 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
 
   useEffect(() => {
     let cancelled = false;
-
     const fetchMenuItems = async () => {
       console.log("[trf-ui] starting discovery menu fetch", {
-        menuUrl: discovery?.menuUrl,
-        orgSlug,
+        menuUrl: discovery?.menuUrl, orgSlug,
         authTokenProvided: Boolean(discovery?.authToken),
-        authCookieName: discovery?.authCookieName
+        authCookieName: discovery?.authCookieName,
       });
-
       try {
         const result = await fetchDiscoveryMenu({
           menuUrl: discovery?.menuUrl,
@@ -131,37 +145,21 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
           setDiscoveryBaseUrls(result.baseUrls);
           setDiscoveryError(null);
           console.log("[trf-ui] discovery menu items loaded into side menu", {
-            count: result.items.length,
-            ids: result.items.map((item) => item.id)
+            count: result.items.length, ids: result.items.map((item) => item.id),
           });
         }
       } catch (error) {
         if (!cancelled) {
           setDiscoveryItems([]);
-          const message =
-            error instanceof Error && error.message
-              ? error.message
-              : "Could not load discovery menu.";
+          const message = error instanceof Error && error.message ? error.message : "Could not load discovery menu.";
           setDiscoveryError(message);
         }
         console.error("[trf-ui] failed to fetch discovery menu", error);
       }
     };
-
     void fetchMenuItems();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [
-    discovery?.menuUrl,
-    discovery?.authToken,
-    authCookieName,
-    discovery?.credentials,
-    discovery?.ifMatch,
-    orgSlug,
-    authVersion
-  ]);
+    return () => { cancelled = true; };
+  }, [discovery?.menuUrl, discovery?.authToken, authCookieName, discovery?.credentials, discovery?.ifMatch, orgSlug, authVersion]);
 
   useEffect(() => {
     const ancestorIds = new Set<string>();
@@ -169,10 +167,7 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
       for (const item of items) {
         const selfActive = isActive(item);
         const childActive = item.children ? collectAncestors(item.children) : false;
-        if (selfActive || childActive) {
-          ancestorIds.add(item.id);
-          return true;
-        }
+        if (selfActive || childActive) { ancestorIds.add(item.id); return true; }
       }
       return targetActive;
     };
@@ -183,16 +178,10 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
       }
     }
     if (ancestorIds.size > 0) {
-      setOpenSections(prev => {
-        const next = new Set(prev);
-        for (const id of ancestorIds) next.add(id);
-        return next;
-      });
+      setOpenSections(prev => { const next = new Set(prev); for (const id of ancestorIds) next.add(id); return next; });
     } else {
       const fallback = DEFAULT_OPEN_BY_APP[currentAppId];
-      if (fallback) {
-        setOpenSections(new Set([fallback]));
-      }
+      if (fallback) setOpenSections(new Set([fallback]));
     }
   }, [location.pathname, currentAppId, sideMenuItems]);
 
@@ -221,10 +210,8 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
 
   const handleItemClick = (item: MenuItem) => {
     if (item.disabled) return;
-
     const url = resolveExternalUrl(item);
     if (!url) return;
-
     try {
       const parsed = new URL(url);
       if (parsed.origin === window.location.origin) {
@@ -232,62 +219,60 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
         setMobileOpen(false);
         return;
       }
-    } catch {
-      // not a full URL — fall through
-    }
-
+    } catch { /* not a full URL */ }
     window.location.href = url;
   };
 
-  const renderItems = (items: MenuItem[], depth = 0) => {
-    return (
-      <ul className="space-y-1">
-        {items.map((item) => {
-          const hasChildren = !!item.children && item.children.length > 0;
-          const active = isActive(item) || hasActiveChild(item);
-          const indent =
-            depth === 0 ? "pl-0" : depth === 1 ? "pl-4" : depth === 2 ? "pl-8" : "pl-10";
+  const renderItems = (items: MenuItem[], depth = 0) => (
+    <ul style={{ display: "flex", flexDirection: "column", gap: "1px" }}>
+      {items.map((item) => {
+        const hasChildren = !!item.children && item.children.length > 0;
+        const active = isActive(item) || hasActiveChild(item);
+        const paddingLeft = depth === 0 ? "0.75rem" : depth === 1 ? "1.25rem" : depth === 2 ? "2rem" : "2.5rem";
 
-          const baseClasses =
-            "flex items-center justify-between w-full rounded-lg px-3 py-2 text-sm transition";
-          const stateClasses = item.disabled
-            ? "text-slate-400 cursor-not-allowed"
-            : active
-            ? "bg-sky-50 text-sky-700 border border-sky-200 cursor-pointer"
-            : "text-slate-700 hover:bg-slate-50 cursor-pointer";
+        const btnStyle: React.CSSProperties = {
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          width: "100%", borderRadius: "0.5rem",
+          paddingTop: "0.4rem", paddingBottom: "0.4rem",
+          paddingLeft, paddingRight: "0.75rem",
+          fontSize: "0.875rem", fontWeight: active ? 500 : 400,
+          transition: "background 0.2s, color 0.2s",
+          cursor: item.disabled ? "not-allowed" : "pointer",
+          border: active ? `1px solid ${T.primaryBorder}` : "1px solid transparent",
+          background: active ? T.primaryBg : "transparent",
+          color: item.disabled ? T.fgDim : active ? T.primary : T.fg,
+          textAlign: "left",
+        };
 
-          return (
-            <li key={item.id}>
-              <button
-                type="button"
-                className={`${baseClasses} ${stateClasses} ${indent}`}
-                onClick={() => {
-                  if (hasChildren) {
-                    handleToggle(item.id, item.disabled);
-                  } else {
-                    handleItemClick(item);
-                  }
-                }}
-              >
-                <span className="truncate text-base">{item.label}</span>
-                {hasChildren && (
-                  <span className="ml-2 text-xs text-slate-400">
-                    {openSections.has(item.id) ? "-" : "+"}
-                  </span>
-                )}
-              </button>
-
-              {hasChildren && openSections.has(item.id) && (
-                <div className="mt-1 ml-1 border-l border-slate-100 pl-2">
-                  {renderItems(item.children!, depth + 1)}
-                </div>
+        return (
+          <li key={item.id}>
+            <button
+              type="button"
+              style={btnStyle}
+              onMouseEnter={(e) => { if (!item.disabled && !active) e.currentTarget.style.background = T.muted; }}
+              onMouseLeave={(e) => { if (!item.disabled && !active) e.currentTarget.style.background = "transparent"; }}
+              onClick={() => {
+                if (hasChildren) handleToggle(item.id, item.disabled);
+                else handleItemClick(item);
+              }}
+            >
+              <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.label}</span>
+              {hasChildren && (
+                <span style={{ marginLeft: "0.5rem", fontSize: "0.7rem", color: T.fgDim, flexShrink: 0 }}>
+                  {openSections.has(item.id) ? "▲" : "▼"}
+                </span>
               )}
-            </li>
-          );
-        })}
-      </ul>
-    );
-  };
+            </button>
+            {hasChildren && openSections.has(item.id) && (
+              <div style={{ marginTop: "1px", marginLeft: "0.25rem", borderLeft: `1px solid ${T.borderSubtle}`, paddingLeft: "0.375rem" }}>
+                {renderItems(item.children!, depth + 1)}
+              </div>
+            )}
+          </li>
+        );
+      })}
+    </ul>
+  );
 
   const portalBase = effectiveBaseUrls.portal || "https://login.trf.is";
   const homeUrl = orgSlug
@@ -295,33 +280,57 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
     : `${portalBase}/app/manage-organization`;
 
   const MenuContent = (
-    <div className="flex flex-col h-full">
-      <a href={homeUrl} className="flex items-center gap-3 px-4 py-4 border-b border-slate-200 no-underline hover:bg-slate-50 transition">
-        <div className="h-8 w-8 bg-slate-900 rounded-lg flex items-center justify-center">
-          <span className="text-white font-semibold text-[10px] tracking-wider">TRF</span>
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-slate-900">TRF.is</p>
-          <p className="text-xs text-slate-500">Business tools in one place.</p>
-          {orgName && <p className="text-xs text-slate-400 truncate">{orgName}</p>}
+    <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+      {/* Header / branding */}
+      <a
+        href={homeUrl}
+        style={{
+          display: "flex", alignItems: "center", gap: "0.75rem",
+          padding: "1rem 1rem 1rem 1rem",
+          borderBottom: `1px solid ${T.border}`,
+          textDecoration: "none",
+          transition: "background 0.2s",
+        }}
+        onMouseEnter={(e) => (e.currentTarget.style.background = T.muted)}
+        onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+      >
+        <span style={{ fontSize: "1.25rem", fontWeight: 700, letterSpacing: "-0.02em", flexShrink: 0, ...gradientTextStyle }}>
+          TRF.IS
+        </span>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <p style={{ fontSize: "0.8125rem", fontWeight: 600, color: T.fg, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+            Business tools in one place.
+          </p>
+          {orgName && (
+            <p style={{ fontSize: "0.75rem", color: T.fgMuted, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              {orgName}
+            </p>
+          )}
         </div>
       </a>
 
-      <div className="flex-1 overflow-y-auto px-3 py-4">
+      {/* Nav items */}
+      <div style={{ flex: 1, overflowY: "auto", padding: "0.75rem 0.625rem" }}>
         {discoveryError && (
-          <div className="mb-3 rounded border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+          <div style={{ marginBottom: "0.75rem", borderRadius: "0.5rem", border: "1px solid hsla(0,85%,55%,0.3)", background: "hsla(0,85%,55%,0.1)", padding: "0.5rem 0.75rem", fontSize: "0.75rem", color: "hsl(0,85%,70%)" }}>
             {discoveryError}
           </div>
         )}
         {renderItems(sideMenuItems)}
       </div>
 
-      <div className="border-t border-slate-200 px-3 py-3 space-y-1">
+      {/* Footer */}
+      <div style={{ borderTop: `1px solid ${T.border}`, padding: "0.625rem 0.625rem", display: "flex", flexDirection: "column", gap: "0.25rem" }}>
         {translationClient && (
           <select
             value={currentLang}
             onChange={(e) => translationClient.setLang(e.target.value)}
-            className="w-full rounded-lg px-3 py-2 text-sm text-slate-600 bg-white border border-slate-200 hover:border-slate-300 transition cursor-pointer focus:outline-none"
+            style={{
+              width: "100%", borderRadius: "0.5rem", padding: "0.4rem 0.75rem",
+              fontSize: "0.8125rem", color: T.fgMuted,
+              background: T.muted, border: `1px solid ${T.border}`,
+              cursor: "pointer", outline: "none", fontFamily: "inherit",
+            }}
           >
             {LANGUAGES.map((l) => (
               <option key={l.code} value={l.code}>{l.label}</option>
@@ -331,7 +340,14 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
         <button
           type="button"
           onClick={() => logout(`${effectiveBaseUrls.portal ?? "https://login.trf.is"}/`)}
-          className="w-full rounded-lg px-3 py-2 text-sm text-slate-500 hover:bg-slate-50 hover:text-slate-700 transition text-left"
+          style={{
+            width: "100%", borderRadius: "0.5rem", padding: "0.4rem 0.75rem",
+            fontSize: "0.8125rem", color: T.fgMuted, background: "transparent",
+            border: "1px solid transparent", cursor: "pointer", textAlign: "left",
+            transition: "background 0.2s, color 0.2s", fontFamily: "inherit",
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = T.muted; e.currentTarget.style.color = T.fg; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = T.fgMuted; }}
         >
           Sign out
         </button>
@@ -339,41 +355,52 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
     </div>
   );
 
-  const navClassName = [
-    "hidden md:flex md:flex-col md:w-64 lg:w-72 bg-gradient-to-b from-white to-sky-50 border-r border-slate-200",
-    className
-  ]
-    .filter(Boolean)
-    .join(" ");
+  const navStyle: React.CSSProperties = {
+    display: "none",
+    flexDirection: "column",
+    width: "16rem",
+    background: T.bg,
+    borderRight: `1px solid ${T.border}`,
+  };
 
   return (
     <>
-      <div className="md:hidden border-b border-slate-200 px-4 py-3 flex items-center justify-between bg-white">
-        <a href={homeUrl} className="flex items-center gap-3 no-underline">
-          <div className="h-7 w-7 bg-slate-900 rounded-lg flex items-center justify-center">
-            <span className="text-white font-semibold text-[9px] tracking-wider">TRF</span>
-          </div>
-          <div className="min-w-0">
-            <p className="text-sm font-semibold text-slate-900">TRF.is</p>
-            <p className="text-[11px] text-slate-500">Business tools in one place.</p>
-            {orgName && <p className="text-[11px] text-slate-400 truncate">{orgName}</p>}
+      {/* Mobile top bar */}
+      <div
+        className="md:hidden"
+        style={{
+          borderBottom: `1px solid ${T.border}`,
+          padding: "0.75rem 1rem",
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          background: T.bg,
+        }}
+      >
+        <a href={homeUrl} style={{ display: "flex", alignItems: "center", gap: "0.625rem", textDecoration: "none" }}>
+          <span style={{ fontSize: "1.125rem", fontWeight: 700, letterSpacing: "-0.02em", ...gradientTextStyle }}>TRF.IS</span>
+          <div style={{ minWidth: 0 }}>
+            <p style={{ fontSize: "0.8125rem", fontWeight: 600, color: T.fg }}>Business tools in one place.</p>
+            {orgName && <p style={{ fontSize: "0.6875rem", color: T.fgMuted, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{orgName}</p>}
           </div>
         </a>
         <button
           type="button"
-          className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-700 flex items-center gap-1.5"
+          style={{
+            borderRadius: "0.5rem", border: `1px solid ${T.border}`, padding: "0.375rem 0.75rem",
+            fontSize: "0.8125rem", color: T.fg, background: T.muted,
+            display: "flex", alignItems: "center", gap: "0.375rem", cursor: "pointer", fontFamily: "inherit",
+          }}
           onClick={() => setMobileOpen((prev) => !prev)}
         >
           {mobileOpen ? (
             <>
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <svg xmlns="http://www.w3.org/2000/svg" style={{ width: "1rem", height: "1rem" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
               Close
             </>
           ) : (
             <>
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <svg xmlns="http://www.w3.org/2000/svg" style={{ width: "1rem", height: "1rem" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
               </svg>
               Menu
@@ -382,13 +409,15 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
         </button>
       </div>
 
+      {/* Mobile drawer */}
       {mobileOpen && (
         <div
-          className="md:hidden fixed inset-0 bg-black/40 z-40"
+          className="md:hidden"
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 40 }}
           onClick={() => setMobileOpen(false)}
         >
           <div
-            className="absolute left-0 top-0 w-64 h-full bg-gradient-to-b from-white to-sky-50 shadow-xl z-50 overflow-y-auto"
+            style={{ position: "absolute", left: 0, top: 0, width: "16rem", height: "100%", background: T.bg, zIndex: 50, overflowY: "auto" }}
             onClick={(e) => e.stopPropagation()}
           >
             {MenuContent}
@@ -396,7 +425,13 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
         </div>
       )}
 
-      <nav className={navClassName}>{MenuContent}</nav>
+      {/* Desktop sidebar */}
+      <nav
+        className={["hidden md:flex", className].filter(Boolean).join(" ")}
+        style={{ ...navStyle, display: undefined }}
+      >
+        {MenuContent}
+      </nav>
     </>
   );
 };
