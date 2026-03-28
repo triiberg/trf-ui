@@ -356,9 +356,9 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
   );
 
   const navStyle: React.CSSProperties = {
-    display: "none",
     flexDirection: "column",
     width: "16rem",
+    flexShrink: 0,
     background: T.bg,
     borderRight: `1px solid ${T.border}`,
   };
@@ -367,11 +367,10 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
     <>
       {/* Mobile top bar */}
       <div
-        className="md:hidden"
+        className="md:hidden flex items-center justify-between"
         style={{
           borderBottom: `1px solid ${T.border}`,
           padding: "0.75rem 1rem",
-          display: "flex", alignItems: "center", justifyContent: "space-between",
           background: T.bg,
         }}
       >
@@ -427,8 +426,8 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
 
       {/* Desktop sidebar */}
       <nav
-        className={["hidden md:flex", className].filter(Boolean).join(" ")}
-        style={{ ...navStyle, display: undefined }}
+        className={["hidden md:flex md:flex-col", className].filter(Boolean).join(" ")}
+        style={navStyle}
       >
         {MenuContent}
       </nav>
