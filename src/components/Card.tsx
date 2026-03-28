@@ -5,17 +5,17 @@ export interface CardProps {
   className?: string;
 }
 
-/**
- * Elevated dark surface card. Sits on the AppShell dark background.
- * Text colour is inherited from context (light on dark).
- */
 export function Card({ children, className = "" }: CardProps) {
   return (
     <div
-      className={`rounded-xl p-7 ${className}`}
+      className={className}
       style={{
-        background: "hsl(190, 14%, 17%)",
-        border: "1px solid hsl(192, 14%, 25%)",
+        background: "rgb(35, 44, 47)",
+        border: "1px solid rgb(49, 60, 63)",
+        borderRadius: "0.875rem",
+        padding: "1.5rem",
+        boxShadow: "rgba(0,0,0,0.3) 0px 1px 3px, rgba(0,0,0,0.15) 0px 8px 24px",
+        color: "rgb(212, 228, 237)",
       }}
     >
       {children}

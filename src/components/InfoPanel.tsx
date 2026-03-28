@@ -5,18 +5,21 @@ export interface InfoPanelProps {
   children: React.ReactNode;
 }
 
-/** Inset dark panel for supplementary information (service lists, notes, etc.). */
 export function InfoPanel({ title, children }: InfoPanelProps) {
   return (
-    <div
-      className="rounded-lg px-4 py-4"
-      style={{
-        background: "hsl(190, 16%, 12%)",
-        border: "1px solid hsl(192, 14%, 20%)",
-      }}
-    >
+    <div style={{
+      background: "rgb(43, 52, 54)",
+      border: "1px solid rgb(54, 66, 69)",
+      borderRadius: "0.625rem",
+      padding: "1rem 1.25rem",
+    }}>
       {title && (
-        <p className="text-sm font-semibold mb-2" style={{ color: "inherit" }}>
+        <p style={{
+          fontSize: "0.8125rem",
+          fontWeight: 600,
+          color: "rgb(184, 211, 224)",
+          margin: "0 0 0.625rem",
+        }}>
           {title}
         </p>
       )}

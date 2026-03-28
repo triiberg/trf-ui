@@ -11,21 +11,42 @@ export interface AppShellProps {
 
 /**
  * Full-page dark shell: side menu + scrollable main content area.
- * Replaces each app's AppLayout.tsx — nothing else needed.
+ * All layout uses inline styles + embedded CSS to avoid depending on
+ * Tailwind scanning node_modules.
  */
 export function AppShell({ children, currentAppId, translationClient }: AppShellProps) {
   return (
-    <div
-      className="min-h-screen flex flex-col md:flex-row"
-      style={{ background: "#232d2e", fontFamily: "'Space Grotesk', system-ui, sans-serif" }}
-    >
-      <SideMenu currentAppId={currentAppId} translationClient={translationClient} />
-      <main
-        className="flex-1 overflow-auto px-5 py-7 md:px-10 md:py-10"
-        style={{ color: "hsl(200,100%,92%)" }}
-      >
-        {children}
-      </main>
-    </div>
+    <>
+      <style>{`
+        .trf-shell {
+          min-height: 100vh;
+          display: flex;
+          flex-direction: column;
+          background: rgb(18, 24, 26);
+          font-family: 'Space Grotesk', system-ui, sans-serif;
+        }
+        @media (min-width: 768px) {
+          .trf-shell { flex-direction: row; }
+        }
+        .trf-shell-main {
+          flex: 1;
+          overflow: auto;
+          padding: 1.75rem 1.25rem;
+          color: rgb(212, 228, 237);
+        }
+        @media (min-width: 768px) {
+          .trf-shell-main { padding: 2.5rem 2.5rem; }
+        }
+        @media (min-width: 1024px) {
+          .trf-shell-main { padding: 2.5rem 3rem; }
+        }
+      `}</style>
+      <div className="trf-shell">
+        <SideMenu currentAppId={currentAppId} translationClient={translationClient} />
+        <main className="trf-shell-main">
+          {children}
+        </main>
+      </div>
+    </>
   );
 }

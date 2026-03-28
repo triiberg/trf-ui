@@ -10,50 +10,65 @@ export interface StepCardProps {
   children: React.ReactNode;
 }
 
-/**
- * Accordion-style card for multi-step wizards. Dark-themed.
- */
 export function StepCard({ step, title, subtitle, summary, open, onOpen, children }: StepCardProps) {
   return (
-    <div
-      className="rounded-xl overflow-hidden"
-      style={{
-        background: "hsl(190, 14%, 17%)",
-        border: "1px solid hsl(192, 14%, 25%)",
-      }}
-    >
+    <div style={{
+      background: "rgb(35, 44, 47)",
+      border: "1px solid rgb(49, 60, 63)",
+      borderRadius: "0.875rem",
+      boxShadow: "rgba(0,0,0,0.3) 0px 1px 3px, rgba(0,0,0,0.15) 0px 8px 24px",
+      overflow: "hidden",
+    }}>
       <button
         type="button"
-        className="w-full flex items-center justify-between px-5 py-5 text-left"
         onClick={onOpen}
+        style={{
+          width: "100%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "1.25rem 1.5rem",
+          textAlign: "left",
+          background: "none",
+          border: "none",
+          cursor: "pointer",
+          color: "rgb(212, 228, 237)",
+        }}
       >
-        <div className="flex items-center gap-3">
-          <span
-            className="inline-flex h-7 w-7 items-center justify-center rounded-full text-sm font-bold shrink-0"
-            style={{
-              background: "hsl(185, 80%, 18%)",
-              color: "hsl(185, 100%, 65%)",
-              border: "1px solid hsl(185, 60%, 30%)",
-            }}
-          >
+        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+          <span style={{
+            display: "inline-flex",
+            width: "1.75rem",
+            height: "1.75rem",
+            alignItems: "center",
+            justifyContent: "center",
+            borderRadius: "9999px",
+            fontSize: "0.8125rem",
+            fontWeight: 700,
+            flexShrink: 0,
+            background: "rgba(0, 210, 200, 0.12)",
+            border: "1px solid rgba(0, 210, 200, 0.3)",
+            color: "hsl(185, 100%, 65%)",
+          }}>
             {step}
           </span>
           <div>
-            <p className="text-base font-semibold leading-tight" style={{ color: "inherit" }}>{title}</p>
+            <p style={{ fontSize: "0.9375rem", fontWeight: 600, margin: 0, color: "inherit" }}>{title}</p>
             {subtitle && (
-              <p className="text-sm mt-0.5" style={{ opacity: 0.6 }}>{subtitle}</p>
+              <p style={{ fontSize: "0.8125rem", margin: "0.25rem 0 0", color: "rgb(106, 152, 175)" }}>{subtitle}</p>
             )}
           </div>
         </div>
-        <span className="text-sm shrink-0 ml-4" style={{ opacity: 0.5 }}>
+        <span style={{ fontSize: "0.8125rem", color: "rgb(82, 109, 122)", flexShrink: 0, marginLeft: "1rem" }}>
           {open ? "▲" : (summary ?? "▼")}
         </span>
       </button>
       {open && (
-        <div
-          className="px-5 py-6"
-          style={{ borderTop: "1px solid hsl(192, 14%, 23%)" }}
-        >
+        <div style={{
+          borderTop: "1px solid rgb(49, 60, 63)",
+          padding: "1.5rem",
+          color: "rgb(212, 228, 237)",
+        }}>
           {children}
         </div>
       )}

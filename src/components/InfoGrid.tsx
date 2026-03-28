@@ -5,10 +5,12 @@ export interface InfoGridProps {
   cols?: 1 | 2;
 }
 
-/** Two-column grid for labeled data fields. Use <InfoField> as direct children. */
 export function InfoGrid({ children, cols = 2 }: InfoGridProps) {
   return (
-    <div className={`grid gap-4 ${cols === 2 ? "sm:grid-cols-2" : ""}`}>
+    <div
+      className={cols === 2 ? "sm:grid-cols-2" : ""}
+      style={{ display: "grid", gap: "1.25rem" }}
+    >
       {children}
     </div>
   );
@@ -17,21 +19,31 @@ export function InfoGrid({ children, cols = 2 }: InfoGridProps) {
 export interface InfoFieldProps {
   label: string;
   value?: React.ReactNode;
-  /** Span both columns. */
   span?: boolean;
 }
 
-/** Labelled value cell for use inside <InfoGrid>. */
 export function InfoField({ label, value, span = false }: InfoFieldProps) {
+  const isEmpty = value == null || value === "";
   return (
     <div className={span ? "sm:col-span-2" : ""}>
-      <p
-        className="text-xs uppercase tracking-wide mb-1"
-        style={{ color: "hsl(200, 25%, 55%)" }}
-      >
+      <p style={{
+        fontSize: "0.6875rem",
+        fontWeight: 500,
+        letterSpacing: "0.04em",
+        textTransform: "uppercase",
+        color: "rgb(106, 152, 175)",
+        margin: "0 0 0.375rem",
+      }}>
         {label}
       </p>
-      <p className="text-sm" style={{ color: "inherit" }}>{value ?? "—"}</p>
+      <p style={{
+        fontSize: "0.875rem",
+        margin: 0,
+        color: isEmpty ? "rgb(82, 109, 122)" : "rgb(212, 228, 237)",
+        fontStyle: isEmpty ? "italic" : "normal",
+      }}>
+        {isEmpty ? "Not provided" : value}
+      </p>
     </div>
   );
 }

@@ -10,34 +10,34 @@ export interface RadioCardProps {
   extra?: React.ReactNode;
 }
 
-/**
- * Selectable card with a radio button. Dark-themed with cyan highlight when checked.
- */
 export function RadioCard({ name, value, checked, onChange, title, description, extra }: RadioCardProps) {
   return (
-    <label
-      className="flex flex-col rounded-xl px-4 py-4 cursor-pointer transition-all"
-      style={{
-        background: checked ? "hsl(185, 35%, 18%)" : "hsl(190, 14%, 17%)",
-        border: `1px solid ${checked ? "hsl(185, 100%, 55%)" : "hsl(192, 14%, 25%)"}`,
-      }}
-    >
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-sm font-semibold" style={{ color: "inherit" }}>{title}</span>
+    <label style={{
+      display: "flex",
+      flexDirection: "column",
+      borderRadius: "0.875rem",
+      padding: "1rem 1.25rem",
+      cursor: "pointer",
+      transition: "border-color 0.15s",
+      background: checked ? "rgba(0, 210, 200, 0.08)" : "rgb(35, 44, 47)",
+      border: `1px solid ${checked ? "hsl(185, 100%, 55%)" : "rgb(49, 60, 63)"}`,
+      boxShadow: "rgba(0,0,0,0.2) 0px 1px 3px",
+    }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.5rem" }}>
+        <span style={{ fontSize: "0.875rem", fontWeight: 600, color: "rgb(212, 228, 237)" }}>{title}</span>
         <input
           type="radio"
           name={name}
           value={value}
           checked={checked}
           onChange={() => onChange(value)}
-          className="h-4 w-4"
-          style={{ accentColor: "hsl(185, 100%, 55%)" }}
+          style={{ width: "1rem", height: "1rem", accentColor: "hsl(185, 100%, 55%)" }}
         />
       </div>
       {description && (
-        <p className="text-sm" style={{ opacity: 0.6 }}>{description}</p>
+        <p style={{ fontSize: "0.8125rem", color: "rgb(106, 152, 175)", margin: 0 }}>{description}</p>
       )}
-      {extra != null && <div className="mt-2">{extra}</div>}
+      {extra != null && <div style={{ marginTop: "0.625rem" }}>{extra}</div>}
     </label>
   );
 }
