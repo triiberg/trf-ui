@@ -14,7 +14,8 @@ export interface SpinnerProps {
 export function Spinner({ size = "md", className = "" }: SpinnerProps) {
   return (
     <svg
-      className={`animate-spin text-blue-500 ${SIZE[size]} ${className}`}
+      className={`animate-spin ${SIZE[size]} ${className}`}
+      style={{ color: "hsl(185, 100%, 55%)" }}
       fill="none"
       viewBox="0 0 24 24"
     >

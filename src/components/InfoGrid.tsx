@@ -2,7 +2,6 @@ import React from "react";
 
 export interface InfoGridProps {
   children: React.ReactNode;
-  /** Number of columns on medium screens. Defaults to 2. */
   cols?: 1 | 2;
 }
 
@@ -26,8 +25,13 @@ export interface InfoFieldProps {
 export function InfoField({ label, value, span = false }: InfoFieldProps) {
   return (
     <div className={span ? "sm:col-span-2" : ""}>
-      <p className="text-xs uppercase text-slate-500 tracking-wide mb-1">{label}</p>
-      <p className="text-sm text-slate-900">{value ?? "—"}</p>
+      <p
+        className="text-xs uppercase tracking-wide mb-1"
+        style={{ color: "hsl(200, 25%, 55%)" }}
+      >
+        {label}
+      </p>
+      <p className="text-sm" style={{ color: "inherit" }}>{value ?? "—"}</p>
     </div>
   );
 }

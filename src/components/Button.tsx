@@ -12,19 +12,18 @@ const SIZE: Record<ButtonSize, string> = {
   lg: "text-base px-5 py-3",
 };
 
-// Gradient primary is applied via inline style; other variants use className only.
 const VARIANT_CLASS: Record<ButtonVariant, string> = {
   primary:   "text-white shadow-sm",
-  secondary: "bg-white border border-slate-200 text-slate-700 hover:bg-slate-50",
+  secondary: "hover:bg-white/10",
   danger:    "bg-red-600 hover:bg-red-700 text-white",
-  ghost:     "text-slate-500 hover:bg-white/10 hover:text-white",
+  ghost:     "hover:bg-white/10",
 };
 
-const VARIANT_STYLE: Record<ButtonVariant, React.CSSProperties | undefined> = {
+const VARIANT_STYLE: Record<ButtonVariant, React.CSSProperties> = {
   primary:   { background: "linear-gradient(135deg, hsl(185,100%,45%), hsl(260,80%,55%), hsl(320,85%,50%))" },
-  secondary: undefined,
-  danger:    undefined,
-  ghost:     undefined,
+  secondary: { border: "1px solid rgba(255,255,255,0.2)", color: "inherit" },
+  danger:    {},
+  ghost:     { color: "inherit", opacity: 0.7 },
 };
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {

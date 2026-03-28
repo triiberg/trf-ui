@@ -4,11 +4,17 @@ export interface ErrorBoxProps {
   children: React.ReactNode;
 }
 
-/** Red bordered box for error messages. */
+/** Dark red-tinted error message box. */
 export function ErrorBox({ children }: ErrorBoxProps) {
   return (
-    <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 max-w-md">
-      <p className="text-sm text-rose-700">{children}</p>
+    <div
+      className="rounded-lg px-4 py-3"
+      style={{
+        background: "hsl(0, 25%, 16%)",
+        border: "1px solid hsl(0, 45%, 30%)",
+      }}
+    >
+      <p className="text-sm" style={{ color: "hsl(0, 80%, 72%)" }}>{children}</p>
     </div>
   );
 }

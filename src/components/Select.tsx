@@ -2,7 +2,7 @@ import React from "react";
 import type { InputSize } from "./Input";
 
 const BASE =
-  "border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-900 focus:outline-none focus:bg-white focus:ring-2 focus:ring-sky-300 focus:border-sky-300 transition-colors";
+  "border rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-sky-400 transition-colors";
 
 const SIZE: Record<InputSize, string> = {
   sm: "px-3 py-1.5",
@@ -20,12 +20,14 @@ export function Select({
   block = true,
   size = "md",
   className = "",
+  style,
   children,
   ...props
 }: SelectProps) {
   return (
     <select
       {...props}
+      style={{ background: "hsl(190, 20%, 92%)", borderColor: "hsl(190, 15%, 75%)", ...style }}
       className={`${BASE} ${SIZE[size]} ${block ? "w-full" : ""} ${className}`}
     >
       {children}

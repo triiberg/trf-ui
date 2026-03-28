@@ -3,7 +3,7 @@ import React from "react";
 export type InputSize = "sm" | "md" | "lg";
 
 const BASE =
-  "border border-slate-200 rounded-lg bg-slate-50 text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-sky-300 focus:border-sky-300 transition-colors";
+  "border rounded-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 transition-colors";
 
 const SIZE: Record<InputSize, string> = {
   sm: "text-xs px-3 py-1.5",
@@ -13,7 +13,6 @@ const SIZE: Record<InputSize, string> = {
 
 export interface InputProps
   extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "size"> {
-  /** Adds w-full. Defaults to true — set false for inline/filter inputs. */
   block?: boolean;
   size?: InputSize;
 }
@@ -22,12 +21,14 @@ export function Input({
   block = true,
   size = "md",
   className = "",
+  style,
   ...props
 }: InputProps) {
   return (
     <input
       {...props}
-      className={`${BASE} ${SIZE[size]} ${block ? "w-full" : ""} ${className}`}
+      style={{ background: "hsl(190, 20%, 92%)", borderColor: "hsl(190, 15%, 75%)", ...style }}
+      className={`${BASE} ${SIZE[size]} ${block ? "w-full" : ""} focus:ring-sky-400 focus:border-sky-400 ${className}`}
     />
   );
 }

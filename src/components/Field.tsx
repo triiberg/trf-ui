@@ -2,9 +2,7 @@ import React from "react";
 
 export interface FieldProps {
   label: React.ReactNode;
-  /** Small helper text shown below the label. */
   hint?: string;
-  /** Required asterisk. */
   required?: boolean;
   children: React.ReactNode;
 }
@@ -12,11 +10,16 @@ export interface FieldProps {
 export function Field({ label, hint, required, children }: FieldProps) {
   return (
     <label className="block">
-      <span className="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5 block">
+      <span
+        className="text-xs font-semibold uppercase tracking-wide mb-1.5 block"
+        style={{ color: "hsl(200, 25%, 55%)" }}
+      >
         {label}
-        {required && <span className="text-rose-500 ml-0.5">*</span>}
+        {required && <span style={{ color: "hsl(0, 80%, 65%)", marginLeft: "0.2em" }}>*</span>}
       </span>
-      {hint && <span className="text-xs text-slate-500 mb-1 block">{hint}</span>}
+      {hint && (
+        <span className="text-xs mb-1 block" style={{ opacity: 0.5 }}>{hint}</span>
+      )}
       {children}
     </label>
   );

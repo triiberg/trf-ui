@@ -2,20 +2,21 @@ import React from "react";
 
 export interface TableCardProps {
   children: React.ReactNode;
-  /** Rendered below the scroll layer, inside the card — useful for pagination. */
   footer?: React.ReactNode;
-  /** Extra classes on the outer container (e.g. "mb-4"). */
   className?: string;
 }
 
 /**
- * Rounded white card that wraps a <table> with a horizontal scroll layer.
- * Outer border + rounded corners are preserved on all viewports.
+ * Dark rounded card that wraps a <table> with a horizontal scroll layer.
  */
 export function TableCard({ children, footer, className = "" }: TableCardProps) {
   return (
     <div
-      className={`bg-white rounded-xl border border-slate-200 overflow-hidden text-slate-900 ${className}`}
+      className={`rounded-xl overflow-hidden ${className}`}
+      style={{
+        background: "hsl(190, 14%, 17%)",
+        border: "1px solid hsl(192, 14%, 25%)",
+      }}
     >
       <div className="overflow-x-auto">{children}</div>
       {footer}

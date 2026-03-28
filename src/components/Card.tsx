@@ -6,13 +6,18 @@ export interface CardProps {
 }
 
 /**
- * White rounded card with a border. Use className for spacing variants,
- * e.g. className="space-y-4" for form stacking or className="p-8" for
- * larger padding.
+ * Elevated dark surface card. Sits on the AppShell dark background.
+ * Text colour is inherited from context (light on dark).
  */
 export function Card({ children, className = "" }: CardProps) {
   return (
-    <div className={`bg-white rounded-xl border border-slate-200 p-7 text-slate-900 ${className}`}>
+    <div
+      className={`rounded-xl p-7 ${className}`}
+      style={{
+        background: "hsl(190, 14%, 17%)",
+        border: "1px solid hsl(192, 14%, 25%)",
+      }}
+    >
       {children}
     </div>
   );

@@ -5,13 +5,17 @@ export interface EmptyStateProps {
   action?: React.ReactNode;
 }
 
-/**
- * Centred empty-state message. Renders as a white card — works inside a dark AppShell.
- */
+/** Centred empty-state message. Dark-themed to sit naturally in AppShell. */
 export function EmptyState({ message, action }: EmptyStateProps) {
   return (
-    <div className="bg-white rounded-xl border border-slate-200 p-8 text-center text-slate-900">
-      <p className="text-slate-500 mb-4">{message}</p>
+    <div
+      className="rounded-xl p-8 text-center"
+      style={{
+        background: "hsl(190, 14%, 17%)",
+        border: "1px solid hsl(192, 14%, 25%)",
+      }}
+    >
+      <p style={{ opacity: 0.6, marginBottom: action ? "1rem" : 0 }}>{message}</p>
       {action}
     </div>
   );
