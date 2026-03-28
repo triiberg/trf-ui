@@ -1,25 +1,33 @@
 import React from "react";
 
 export type ButtonVariant = "primary" | "secondary" | "danger" | "ghost";
-export type ButtonSize = "sm" | "md";
+export type ButtonSize = "sm" | "md" | "lg";
 
 const BASE =
-  "inline-flex items-center justify-center font-medium rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed";
-
-const VARIANT: Record<ButtonVariant, string> = {
-  primary: "bg-blue-600 hover:bg-blue-700 text-white",
-  secondary: "bg-slate-100 hover:bg-slate-200 text-slate-700",
-  danger: "bg-red-600 hover:bg-red-700 text-white",
-  ghost: "hover:bg-slate-100 text-slate-600",
-};
+  "inline-flex items-center justify-center font-semibold rounded-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed";
 
 const SIZE: Record<ButtonSize, string> = {
   sm: "text-xs px-3 py-1.5",
   md: "text-sm px-4 py-2",
+  lg: "text-base px-5 py-3",
 };
 
-export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+// Gradient primary is applied via inline style; other variants use className only.
+const VARIANT_CLASS: Record<ButtonVariant, string> = {
+  primary:   "text-white shadow-sm",
+  secondary: "bg-white border border-slate-200 text-slate-700 hover:bg-slate-50",
+  danger:    "bg-red-600 hover:bg-red-700 text-white",
+  ghost:     "text-slate-500 hover:bg-white/10 hover:text-white",
+};
+
+const VARIANT_STYLE: Record<ButtonVariant, React.CSSProperties | undefined> = {
+  primary:   { background: "linear-gradient(135deg, hsl(185,100%,45%), hsl(260,80%,55%), hsl(320,85%,50%))" },
+  secondary: undefined,
+  danger:    undefined,
+  ghost:     undefined,
+};
+
+export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
   size?: ButtonSize;
 }
@@ -27,13 +35,14 @@ export interface ButtonProps
 export function Button({
   variant = "primary",
   size = "md",
-  className = "",
+  style,
   ...props
 }: ButtonProps) {
   return (
     <button
       {...props}
-      className={`${BASE} ${VARIANT[variant]} ${SIZE[size]} ${className}`}
+      style={{ ...VARIANT_STYLE[variant], ...style }}
+      className={`${BASE} ${VARIANT_CLASS[variant]} ${SIZE[size]}`}
     />
   );
 }
