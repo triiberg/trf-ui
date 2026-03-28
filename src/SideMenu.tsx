@@ -224,10 +224,15 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
   };
 
   const renderItems = (items: MenuItem[], depth = 0) => (
-    <ul style={{ display: "flex", flexDirection: "column", gap: "1px" }}>
+    <ul style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
       {items.map((item) => {
         const hasChildren = !!item.children && item.children.length > 0;
-        const active = isActive(item) || hasActiveChild(item);
+        const selfActive = isActive(item);
+        const childActive = hasActiveChild(item);
+        const isParentWithActiveChild = hasChildren && childActive;
+        const isLeafActive = selfActive && !hasChildren;
+        const isHighlighted = isLeafActive || isParentWithActiveChild;
+
         const paddingLeft = depth === 0 ? "0.75rem" : depth === 1 ? "1.25rem" : depth === 2 ? "2rem" : "2.5rem";
 
         const btnStyle: React.CSSProperties = {
@@ -235,13 +240,26 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
           width: "100%", borderRadius: "0.5rem",
           paddingTop: "0.4rem", paddingBottom: "0.4rem",
           paddingLeft, paddingRight: "0.75rem",
-          fontSize: "0.875rem", fontWeight: active ? 500 : 400,
-          transition: "background 0.2s, color 0.2s",
+          fontSize: "0.875rem",
+          fontWeight: isHighlighted ? 500 : 400,
+          transition: "background 0.2s, color 0.2s, border-color 0.2s",
           cursor: item.disabled ? "not-allowed" : "pointer",
-          border: active ? `1px solid ${T.primaryBorder}` : "1px solid transparent",
-          background: active ? T.primaryBg : "transparent",
-          color: item.disabled ? T.fgDim : active ? T.primary : T.fg,
           textAlign: "left",
+          // Three-way state styling:
+          ...(isLeafActive ? {
+            background: "linear-gradient(to bottom, transparent, hsla(185,100%,55%,0.08))",
+            border: "1px solid transparent",
+            color: T.primary,
+          } : isParentWithActiveChild ? {
+            background: "transparent",
+            border: "1px solid hsla(185,100%,55%,0.22)",
+            borderLeft: "2px solid hsl(185,100%,55%)",
+            color: T.primary,
+          } : {
+            background: "transparent",
+            border: "1px solid transparent",
+            color: item.disabled ? T.fgDim : T.fg,
+          }),
         };
 
         return (
@@ -249,8 +267,16 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
             <button
               type="button"
               style={btnStyle}
-              onMouseEnter={(e) => { if (!item.disabled && !active) e.currentTarget.style.background = T.muted; }}
-              onMouseLeave={(e) => { if (!item.disabled && !active) e.currentTarget.style.background = "transparent"; }}
+              onMouseEnter={(e) => {
+                if (!item.disabled && !isHighlighted) e.currentTarget.style.background = T.muted;
+              }}
+              onMouseLeave={(e) => {
+                if (!item.disabled && !isHighlighted) {
+                  e.currentTarget.style.background = "transparent";
+                } else if (isLeafActive) {
+                  e.currentTarget.style.background = "linear-gradient(to bottom, transparent, hsla(185,100%,55%,0.08))";
+                }
+              }}
               onClick={() => {
                 if (hasChildren) handleToggle(item.id, item.disabled);
                 else handleItemClick(item);
@@ -264,7 +290,7 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
               )}
             </button>
             {hasChildren && openSections.has(item.id) && (
-              <div style={{ marginTop: "1px", marginLeft: "0.25rem", borderLeft: `1px solid ${T.borderSubtle}`, paddingLeft: "0.375rem" }}>
+              <div style={{ marginTop: "2px", marginLeft: "0.25rem", borderLeft: `1px solid ${T.borderSubtle}`, paddingLeft: "0.375rem" }}>
                 {renderItems(item.children!, depth + 1)}
               </div>
             )}
