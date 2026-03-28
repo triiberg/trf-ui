@@ -7,7 +7,7 @@ export interface H1Props {
 
 export function H1({ children, className = "" }: H1Props) {
   return (
-    <h1 className={`text-2xl font-bold text-slate-900 ${className}`}>
+    <h1 className={`text-2xl font-bold text-inherit ${className}`}>
       {children}
     </h1>
   );

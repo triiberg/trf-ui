@@ -12,7 +12,7 @@ export interface CardProps {
  */
 export function Card({ children, className = "" }: CardProps) {
   return (
-    <div className={`bg-white rounded-xl border border-slate-200 p-6 ${className}`}>
+    <div className={`bg-white rounded-xl border border-slate-200 p-7 text-slate-900 ${className}`}>
       {children}
     </div>
   );

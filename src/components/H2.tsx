@@ -7,7 +7,7 @@ export interface H2Props {
 
 export function H2({ children, className = "" }: H2Props) {
   return (
-    <h2 className={`text-lg font-semibold text-slate-800 ${className}`}>
+    <h2 className={`text-lg font-semibold text-inherit ${className}`}>
       {children}
     </h2>
   );

@@ -15,7 +15,7 @@ export interface TableCardProps {
 export function TableCard({ children, footer, className = "" }: TableCardProps) {
   return (
     <div
-      className={`bg-white rounded-xl border border-slate-200 overflow-hidden ${className}`}
+      className={`bg-white rounded-xl border border-slate-200 overflow-hidden text-slate-900 ${className}`}
     >
       <div className="overflow-x-auto">{children}</div>
       {footer}
