@@ -282,7 +282,7 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
                 else handleItemClick(item);
               }}
             >
-              <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.label}</span>
+              <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.labels?.[currentLang] ?? item.label}</span>
               {hasChildren && (
                 <span style={{ marginLeft: "0.5rem", fontSize: "0.7rem", color: T.fgDim, flexShrink: 0 }}>
                   {openSections.has(item.id) ? "▲" : "▼"}

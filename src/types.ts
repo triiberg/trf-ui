@@ -12,6 +12,7 @@ export type AppBaseUrls = Record<string, string>;
 export type MenuItem = {
   id: string;
   label: string;
+  labels?: Record<string, string>;
   appId?: AppId;
   path?: string;
   externalUrl?: string;
