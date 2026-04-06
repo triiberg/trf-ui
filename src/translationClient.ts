@@ -16,8 +16,15 @@ export class TranslationClient {
   private static readonly LANG_KEY = "trf:lang";
 
   constructor(lang: string = "en") {
+    const cookie = this.readLangCookie();
     const stored = typeof localStorage !== "undefined" ? localStorage.getItem(TranslationClient.LANG_KEY) : null;
-    this.lang = stored ?? lang;
+    this.lang = cookie ?? stored ?? lang;
+  }
+
+  private readLangCookie(): string | null {
+    if (typeof document === "undefined") return null;
+    const match = document.cookie.match(/(?:^|;)\s*lang=([^;]+)/);
+    return match ? match[1].trim() : null;
   }
 
   load(): Promise<void> {
@@ -75,6 +82,7 @@ export class TranslationClient {
     if (typeof localStorage !== "undefined") {
       localStorage.setItem(TranslationClient.LANG_KEY, lang);
     }
+    fetch(`https://trf.is/setlang?lang=${lang}`, { credentials: "include" }).catch(() => {});
     if (typeof window !== "undefined") {
       window.dispatchEvent(new CustomEvent("trf:lang-changed", { detail: lang }));
     }
