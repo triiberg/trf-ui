@@ -150,6 +150,21 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
         }
       } catch (error) {
         if (error instanceof Error && error.message.startsWith("Discovery menu request requires authentication")) {
+          if (typeof document !== "undefined") {
+            const hostname = window.location.hostname;
+            const parts = hostname.split(".");
+            const sharedDomain = parts.length >= 2 ? `.${parts.slice(-2).join(".")}` : hostname;
+            const domainVariants = ["", hostname, sharedDomain];
+            for (const chunk of document.cookie.split(";")) {
+              const name = decodeURIComponent((chunk.split("=")[0] ?? "").trim());
+              if (name === "jwt_token" || name.startsWith("trf_jwt_")) {
+                for (const domain of domainVariants) {
+                  const domainAttr = domain ? `; domain=${domain}` : "";
+                  document.cookie = `${encodeURIComponent(name)}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/${domainAttr}`;
+                }
+              }
+            }
+          }
           window.location.href = "http://login.trf.is/";
           return;
         }
