@@ -149,6 +149,10 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
           });
         }
       } catch (error) {
+        if (error instanceof Error && error.message.startsWith("Discovery menu request requires authentication")) {
+          window.location.href = "http://login.trf.is/";
+          return;
+        }
         if (!cancelled) {
           setDiscoveryItems([]);
           const message = error instanceof Error && error.message ? error.message : "Could not load discovery menu.";
