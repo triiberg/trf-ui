@@ -106,7 +106,7 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
     return menuStructure;
   }, [discoveryItems]);
 
-  const isActive = (item: MenuItem) => {
+  const isActive = (item: MenuItem, end?: boolean) => {
     let checkPath: string | undefined = item.path ? injectSlug(item.path, orgSlug) : undefined;
     if (!checkPath && item.externalUrl) {
       try {
@@ -116,6 +116,7 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
     }
     if (!checkPath) return false;
     if (checkPath === "/app" || checkPath === `/app/${orgSlug}`) return location.pathname === checkPath;
+    if (end) return location.pathname === checkPath;
     return location.pathname === checkPath || location.pathname.startsWith(checkPath + "/");
   };
 
@@ -249,7 +250,7 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
         const selfActive = isActive(item);
         const childActive = hasActiveChild(item);
         const isParentWithActiveChild = hasChildren && childActive;
-        const isLeafActive = selfActive && !hasChildren;
+        const isLeafActive = !hasChildren && isActive(item, true);
         const isHighlighted = isLeafActive || isParentWithActiveChild;
 
         const paddingLeft = depth === 0 ? "0.75rem" : depth === 1 ? "1.25rem" : depth === 2 ? "2rem" : "2.5rem";

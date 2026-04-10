@@ -106,7 +106,7 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
     return menuStructure;
   }, [discoveryItems]);
 
-  const isActive = (item: MenuItem) => {
+  const isActive = (item: MenuItem, end?: boolean) => {
     let checkPath: string | undefined = item.path ? injectSlug(item.path, orgSlug) : undefined;
     if (!checkPath && item.externalUrl) {
       try {
@@ -116,6 +116,7 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
     }
     if (!checkPath) return false;
     if (checkPath === "/app" || checkPath === `/app/${orgSlug}`) return location.pathname === checkPath;
+    if (end) return location.pathname === checkPath;
     return location.pathname === checkPath || location.pathname.startsWith(checkPath + "/");
   };
 
@@ -246,7 +247,7 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
     <ul style={{ display: "flex", flexDirection: "column", gap: "1px" }}>
       {items.map((item) => {
         const hasChildren = !!item.children && item.children.length > 0;
-        const active = isActive(item) || hasActiveChild(item);
+        const active = (hasChildren ? isActive(item) : isActive(item, true)) || hasActiveChild(item);
         const paddingLeft = depth === 0 ? "0.75rem" : depth === 1 ? "1.25rem" : depth === 2 ? "2rem" : "2.5rem";
 
         const btnStyle: React.CSSProperties = {
