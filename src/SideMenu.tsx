@@ -247,7 +247,6 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
     <ul style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
       {items.map((item) => {
         const hasChildren = !!item.children && item.children.length > 0;
-        const selfActive = isActive(item);
         const childActive = hasActiveChild(item);
         const isParentWithActiveChild = hasChildren && childActive;
         const isLeafActive = !hasChildren && isActive(item, true);
