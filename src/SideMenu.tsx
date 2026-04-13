@@ -98,7 +98,7 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
     const token = getAuthTokenFromCookie(authCookieName);
     if (!token) { setTokenBalance(null); return; }
     let cancelled = false;
-    fetch("https://login-api.trf.is/v1/balance", {
+    fetch("https://login-api.trf.is/v1/billing/balance", {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((resp) => resp.ok ? resp.json() : null)
