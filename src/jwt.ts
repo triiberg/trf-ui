@@ -1,5 +1,18 @@
 import { DEFAULT_DISCOVERY_AUTH_COOKIE_NAME } from "./config";
 
+export const getAuthTokenFromCookie = (cookieName?: string): string | null => {
+  if (typeof document === "undefined") return null;
+  const name = cookieName?.trim() || DEFAULT_DISCOVERY_AUTH_COOKIE_NAME;
+  const cookies = document.cookie.split(";");
+  for (const chunk of cookies) {
+    const [rawName, ...rawValueParts] = chunk.split("=");
+    if ((rawName ?? "").trim() === name) {
+      return rawValueParts.join("=").trim() || null;
+    }
+  }
+  return null;
+};
+
 export const getOrganizationNameFromJwt = (cookieName?: string): string | null => {
   if (typeof document === "undefined") return null;
   const name = cookieName?.trim() || DEFAULT_DISCOVERY_AUTH_COOKIE_NAME;

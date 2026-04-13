@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { fetchDiscoveryMenu } from "./discoveryClient";
-import { getOrganizationNameFromJwt } from "./jwt";
+import { getAuthTokenFromCookie, getOrganizationNameFromJwt } from "./jwt";
 import { logout } from "./logout";
 import { menuStructure } from "./menu";
 import type { AppBaseUrls, AppId, DiscoveryMenuConfig, MenuItem } from "./types";
@@ -78,6 +78,7 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
   const [discoveryBaseUrls, setDiscoveryBaseUrls] = useState<AppBaseUrls>({});
   const [discoveryError, setDiscoveryError] = useState<string | null>(null);
   const [orgName, setOrgName] = useState<string | null>(null);
+  const [tokenBalance, setTokenBalance] = useState<number | null>(null);
   const [authVersion, setAuthVersion] = useState(0);
   const [currentLang, setCurrentLang] = useState<string>(() => translationClient?.getLang() ?? "en");
 
@@ -92,6 +93,23 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
     window.addEventListener("trf:auth-changed", onAuthChanged);
     return () => window.removeEventListener("trf:auth-changed", onAuthChanged);
   }, [authCookieName]);
+
+  useEffect(() => {
+    const token = getAuthTokenFromCookie(authCookieName);
+    if (!token) { setTokenBalance(null); return; }
+    let cancelled = false;
+    fetch("https://login-api.trf.is/v1/balance", {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((resp) => resp.ok ? resp.json() : null)
+      .then((data) => {
+        if (cancelled || data == null) return;
+        const val = typeof data === "number" ? data : (data?.balance ?? null);
+        setTokenBalance(typeof val === "number" ? val : null);
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [authCookieName, authVersion]);
 
   useEffect(() => {
     const onLangChanged = (e: Event) => {
@@ -347,6 +365,9 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
             <p style={{ fontSize: "0.75rem", color: T.fgMuted, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
               {orgName}
             </p>
+            {tokenBalance !== null && tokenBalance < 0 && (
+              <p style={{ fontSize: "0.6875rem", color: "hsl(0,85%,65%)", whiteSpace: "nowrap" }}>Out of tokens</p>
+            )}
           </div>
         )}
       </a>
@@ -419,7 +440,12 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
         <a href={homeUrl} style={{ display: "flex", alignItems: "center", gap: "0.625rem", textDecoration: "none" }}>
           <span style={{ fontSize: "1.125rem", fontWeight: 700, letterSpacing: "-0.02em", ...gradientTextStyle }}>TRF.IS</span>
           {orgName && (
-            <p style={{ fontSize: "0.6875rem", color: T.fgMuted, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0 }}>{orgName}</p>
+            <div style={{ minWidth: 0, overflow: "hidden" }}>
+              <p style={{ fontSize: "0.6875rem", color: T.fgMuted, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{orgName}</p>
+              {tokenBalance !== null && tokenBalance < 0 && (
+                <p style={{ fontSize: "0.625rem", color: "hsl(0,85%,65%)", whiteSpace: "nowrap" }}>Out of tokens</p>
+              )}
+            </div>
           )}
         </a>
         <button
