@@ -8,9 +8,10 @@ export interface RadioCardProps {
   title: string;
   description?: string;
   extra?: React.ReactNode;
+  disabledSelection?: boolean;
 }
 
-export function RadioCard({ name, value, checked, onChange, title, description, extra }: RadioCardProps) {
+export function RadioCard({ name, value, checked, onChange, title, description, extra, disabledSelection }: RadioCardProps) {
   return (
     <label
       style={{
@@ -18,10 +19,11 @@ export function RadioCard({ name, value, checked, onChange, title, description, 
         flexDirection: "column",
         borderRadius: "0.75rem",
         padding: "1rem 1.125rem",
-        cursor: "pointer",
+        cursor: disabledSelection ? "not-allowed" : "pointer",
         transition: "border-color 0.15s, background 0.15s",
         background: checked ? "hsla(195, 80%, 45%, 0.08)" : "hsl(192, 12%, 14%)",
         border: `1px solid ${checked ? "hsl(195, 60%, 40%)" : "hsl(192, 12%, 22%)"}`,
+        opacity: disabledSelection ? 0.45 : 1,
       }}
     >
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.5rem" }}>
@@ -33,7 +35,8 @@ export function RadioCard({ name, value, checked, onChange, title, description, 
           name={name}
           value={value}
           checked={checked}
-          onChange={() => onChange(value)}
+          disabled={disabledSelection}
+          onChange={() => !disabledSelection && onChange(value)}
           style={{ width: "1rem", height: "1rem", accentColor: "hsl(195, 80%, 50%)" }}
         />
       </div>
