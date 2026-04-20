@@ -184,7 +184,7 @@ const SideMenu: React.FC<SideMenuProps> = ({ currentAppId, baseUrls, className, 
               }
             }
           }
-          window.location.href = "http://login.trf.is/";
+          window.location.href = "https://login.trf.is/";
           return;
         }
         if (!cancelled) {
