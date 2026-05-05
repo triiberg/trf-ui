@@ -73,6 +73,11 @@ export type { LoadingStateProps } from "./components/LoadingState";
 export { Spinner } from "./components/Spinner";
 export type { SpinnerProps, SpinnerSize } from "./components/Spinner";
 
+// Data tables
+export { DataTable } from "./components/DataTable";
+export type { DataTableProps } from "./components/DataTable";
+export { dataTableHeaderCellStyle, dataTableCellStyle, dataTableRowBorder } from "./components/DataTable";
+
 // Legacy (kept for compat)
 export { PageContainer } from "./components/PageContainer";
 export type { PageContainerProps, PageContainerSize } from "./components/PageContainer";
