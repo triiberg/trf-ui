@@ -66,6 +66,8 @@ export { RadioCard } from "./components/RadioCard";
 export type { RadioCardProps } from "./components/RadioCard";
 
 // Feedback
+export { StatusBadge } from "./components/StatusBadge";
+export type { StatusBadgeProps, StatusBadgeVariant } from "./components/StatusBadge";
 export { ErrorBox } from "./components/ErrorBox";
 export type { ErrorBoxProps } from "./components/ErrorBox";
 export { EmptyState } from "./components/EmptyState";
