@@ -45,6 +45,8 @@ export { LinkButton } from "./components/LinkButton";
 export type { LinkButtonProps } from "./components/LinkButton";
 
 // Forms
+export { AccountCombobox } from "./components/AccountCombobox";
+export type { AccountComboboxProps, AccountOption, FilterPreset } from "./components/AccountCombobox";
 export { Input } from "./components/Input";
 export type { InputProps, InputSize } from "./components/Input";
 export { Select } from "./components/Select";
