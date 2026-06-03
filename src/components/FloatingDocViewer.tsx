@@ -117,11 +117,12 @@ export function FloatingDocViewer({ src, fileName, onClose }: FloatingDocViewerP
         />
       );
     }
+    // <embed> is required for PDFs — Chrome downloads PDFs placed in <iframe> even with blob URLs.
     return (
-      <iframe
+      <embed
         src={blobUrl}
-        title={fileName}
-        style={{ width: "100%", height: "100%", border: "none", display: "block" }}
+        type={mimeType || "application/pdf"}
+        style={{ width: "100%", height: "100%", display: "block" }}
       />
     );
   };
