@@ -3,18 +3,12 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 export interface FloatingDocViewerProps {
   src: string;
   fileName: string;
-  mimeType?: string;
   onClose: () => void;
 }
 
 const HEADER_H = 38;
 
-export function FloatingDocViewer({
-  src,
-  fileName,
-  mimeType = "",
-  onClose,
-}: FloatingDocViewerProps) {
+export function FloatingDocViewer({ src, fileName, onClose }: FloatingDocViewerProps) {
   const [dims] = useState(() => ({
     w: Math.round(window.innerWidth * 0.25),
     h: Math.round(window.innerHeight * 0.5),
@@ -25,18 +19,57 @@ export function FloatingDocViewer({
     y: 24,
   }));
 
+  const [blobUrl, setBlobUrl] = useState<string | null>(null);
+  const [mimeType, setMimeType] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+
+  // Fetch the file as a blob so Content-Disposition is irrelevant —
+  // the browser renders purely based on the blob's MIME type.
+  useEffect(() => {
+    let objectUrl: string | null = null;
+    setLoading(true);
+    setError(false);
+    setBlobUrl(null);
+    setMimeType("");
+
+    fetch(src)
+      .then((r) => {
+        if (!r.ok) throw new Error(`${r.status}`);
+        const ct = r.headers.get("content-type") ?? "";
+        const mime = ct.split(";")[0].trim();
+        setMimeType(mime);
+        return r.blob().then((blob) => ({ blob, mime }));
+      })
+      .then(({ blob, mime }) => {
+        objectUrl = URL.createObjectURL(new Blob([blob], { type: mime || blob.type }));
+        setBlobUrl(objectUrl);
+        setLoading(false);
+      })
+      .catch(() => {
+        setError(true);
+        setLoading(false);
+      });
+
+    return () => {
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [src]);
+
+  // ── Drag ──────────────────────────────────────────────────────────────────
+
   const dragging = useRef(false);
   const dragOffset = useRef({ x: 0, y: 0 });
 
-  const onHeaderMouseDown = useCallback((e: React.MouseEvent) => {
-    if (e.button !== 0) return;
-    dragging.current = true;
-    dragOffset.current = {
-      x: e.clientX - pos.x,
-      y: e.clientY - pos.y,
-    };
-    e.preventDefault();
-  }, [pos]);
+  const onHeaderMouseDown = useCallback(
+    (e: React.MouseEvent) => {
+      if (e.button !== 0) return;
+      dragging.current = true;
+      dragOffset.current = { x: e.clientX - pos.x, y: e.clientY - pos.y };
+      e.preventDefault();
+    },
+    [pos],
+  );
 
   useEffect(() => {
     const onMouseMove = (e: MouseEvent) => {
@@ -54,7 +87,44 @@ export function FloatingDocViewer({
     };
   }, [dims]);
 
+  // ── Render ────────────────────────────────────────────────────────────────
+
   const isImage = mimeType.startsWith("image/");
+
+  const renderContent = () => {
+    if (loading) {
+      return (
+        <div style={centerStyle}>
+          <div style={spinnerStyle} />
+        </div>
+      );
+    }
+    if (error || !blobUrl) {
+      return (
+        <div style={centerStyle}>
+          <span style={{ color: "rgb(255,140,130)", fontSize: "0.8125rem" }}>
+            Could not load document.
+          </span>
+        </div>
+      );
+    }
+    if (isImage) {
+      return (
+        <img
+          src={blobUrl}
+          alt={fileName}
+          style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }}
+        />
+      );
+    }
+    return (
+      <iframe
+        src={blobUrl}
+        title={fileName}
+        style={{ width: "100%", height: "100%", border: "none", display: "block" }}
+      />
+    );
+  };
 
   return (
     <div
@@ -72,10 +142,9 @@ export function FloatingDocViewer({
         borderRadius: "0.75rem",
         boxShadow: "0 8px 40px rgba(0,0,0,0.55)",
         overflow: "hidden",
-        userSelect: dragging.current ? "none" : "auto",
       }}
     >
-      {/* Drag handle / title bar */}
+      {/* Title bar / drag handle */}
       <div
         onMouseDown={onHeaderMouseDown}
         style={{
@@ -124,32 +193,38 @@ export function FloatingDocViewer({
         </button>
       </div>
 
-      {/* Content */}
+      {/* Content area */}
       <div style={{ flex: 1, overflow: "hidden", background: "rgb(20, 26, 28)" }}>
-        {isImage ? (
-          <img
-            src={src}
-            alt={fileName}
-            style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "contain",
-              display: "block",
-            }}
-          />
-        ) : (
-          <iframe
-            src={src}
-            title={fileName}
-            style={{
-              width: "100%",
-              height: "100%",
-              border: "none",
-              display: "block",
-            }}
-          />
-        )}
+        {renderContent()}
       </div>
     </div>
   );
+}
+
+const centerStyle: React.CSSProperties = {
+  width: "100%",
+  height: "100%",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+};
+
+const spinnerStyle: React.CSSProperties = {
+  width: 28,
+  height: 28,
+  border: "3px solid rgba(106,152,175,0.2)",
+  borderTopColor: "rgb(106,152,175)",
+  borderRadius: "50%",
+  animation: "trf-spin 0.7s linear infinite",
+};
+
+// Inject spin keyframes once — avoids a CSS file dependency.
+if (typeof document !== "undefined") {
+  const id = "trf-floating-doc-spin";
+  if (!document.getElementById(id)) {
+    const style = document.createElement("style");
+    style.id = id;
+    style.textContent = "@keyframes trf-spin { to { transform: rotate(360deg); } }";
+    document.head.appendChild(style);
+  }
 }
