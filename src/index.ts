@@ -82,6 +82,10 @@ export { DataTable } from "./components/DataTable";
 export type { DataTableProps } from "./components/DataTable";
 export { dataTableHeaderCellStyle, dataTableCellStyle, dataTableRowBorder } from "./components/DataTable";
 
+// Floating document viewer
+export { FloatingDocViewer } from "./components/FloatingDocViewer";
+export type { FloatingDocViewerProps } from "./components/FloatingDocViewer";
+
 // Legacy (kept for compat)
 export { PageContainer } from "./components/PageContainer";
 export type { PageContainerProps, PageContainerSize } from "./components/PageContainer";
