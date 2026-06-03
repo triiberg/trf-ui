@@ -8,6 +8,35 @@ export interface FloatingDocViewerProps {
 
 const HEADER_H = 38;
 
+// Detect MIME type from the first bytes of the file so we don't trust
+// whatever (possibly wrong) Content-Type the server sends.
+function sniffMime(bytes: Uint8Array, serverMime: string): string {
+  // PDF: %PDF
+  if (bytes[0] === 0x25 && bytes[1] === 0x50 && bytes[2] === 0x44 && bytes[3] === 0x46) {
+    return "application/pdf";
+  }
+  // PNG: \x89PNG
+  if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) {
+    return "image/png";
+  }
+  // JPEG: \xFF\xD8
+  if (bytes[0] === 0xff && bytes[1] === 0xd8) {
+    return "image/jpeg";
+  }
+  // GIF: GIF8
+  if (bytes[0] === 0x47 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x38) {
+    return "image/gif";
+  }
+  // WebP: RIFF????WEBP
+  if (
+    bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46 &&
+    bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50
+  ) {
+    return "image/webp";
+  }
+  return serverMime || "application/octet-stream";
+}
+
 export function FloatingDocViewer({ src, fileName, onClose }: FloatingDocViewerProps) {
   const [dims] = useState(() => ({
     w: Math.round(window.innerWidth * 0.25),
@@ -24,8 +53,6 @@ export function FloatingDocViewer({ src, fileName, onClose }: FloatingDocViewerP
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
-  // Fetch the file as a blob so Content-Disposition is irrelevant —
-  // the browser renders purely based on the blob's MIME type.
   useEffect(() => {
     let objectUrl: string | null = null;
     setLoading(true);
@@ -36,13 +63,13 @@ export function FloatingDocViewer({ src, fileName, onClose }: FloatingDocViewerP
     fetch(src)
       .then((r) => {
         if (!r.ok) throw new Error(`${r.status}`);
-        const ct = r.headers.get("content-type") ?? "";
-        const mime = ct.split(";")[0].trim();
-        setMimeType(mime);
-        return r.blob().then((blob) => ({ blob, mime }));
+        const serverMime = (r.headers.get("content-type") ?? "").split(";")[0].trim();
+        return r.arrayBuffer().then((buf) => ({ buf, serverMime }));
       })
-      .then(({ blob, mime }) => {
-        objectUrl = URL.createObjectURL(new Blob([blob], { type: mime || blob.type }));
+      .then(({ buf, serverMime }) => {
+        const mime = sniffMime(new Uint8Array(buf, 0, 12), serverMime);
+        setMimeType(mime);
+        objectUrl = URL.createObjectURL(new Blob([buf], { type: mime }));
         setBlobUrl(objectUrl);
         setLoading(false);
       })
@@ -117,12 +144,13 @@ export function FloatingDocViewer({ src, fileName, onClose }: FloatingDocViewerP
         />
       );
     }
-    // <embed> is required for PDFs — Chrome downloads PDFs placed in <iframe> even with blob URLs.
+    // iframe + blob typed as application/pdf invokes Chrome's built-in PDFium viewer.
+    // <embed> is NOT used — it triggers the removed NPAPI plugin path on Linux.
     return (
-      <embed
+      <iframe
         src={blobUrl}
-        type={mimeType || "application/pdf"}
-        style={{ width: "100%", height: "100%", display: "block" }}
+        title={fileName}
+        style={{ width: "100%", height: "100%", border: "none", display: "block" }}
       />
     );
   };
@@ -145,7 +173,6 @@ export function FloatingDocViewer({ src, fileName, onClose }: FloatingDocViewerP
         overflow: "hidden",
       }}
     >
-      {/* Title bar / drag handle */}
       <div
         onMouseDown={onHeaderMouseDown}
         style={{
@@ -194,7 +221,6 @@ export function FloatingDocViewer({ src, fileName, onClose }: FloatingDocViewerP
         </button>
       </div>
 
-      {/* Content area */}
       <div style={{ flex: 1, overflow: "hidden", background: "rgb(20, 26, 28)" }}>
         {renderContent()}
       </div>
@@ -219,7 +245,6 @@ const spinnerStyle: React.CSSProperties = {
   animation: "trf-spin 0.7s linear infinite",
 };
 
-// Inject spin keyframes once — avoids a CSS file dependency.
 if (typeof document !== "undefined") {
   const id = "trf-floating-doc-spin";
   if (!document.getElementById(id)) {
