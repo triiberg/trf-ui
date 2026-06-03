@@ -7,51 +7,43 @@ export interface FloatingDocViewerProps {
 }
 
 const HEADER_H = 38;
+const MIN_W = 280;
+const MIN_H = 200;
+const GRIP = 14; // resize handle hit area (px)
 
-// Detect MIME type from the first bytes of the file so we don't trust
-// whatever (possibly wrong) Content-Type the server sends.
 function sniffMime(bytes: Uint8Array, serverMime: string): string {
-  // PDF: %PDF
-  if (bytes[0] === 0x25 && bytes[1] === 0x50 && bytes[2] === 0x44 && bytes[3] === 0x46) {
+  if (bytes[0] === 0x25 && bytes[1] === 0x50 && bytes[2] === 0x44 && bytes[3] === 0x46)
     return "application/pdf";
-  }
-  // PNG: \x89PNG
-  if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) {
+  if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47)
     return "image/png";
-  }
-  // JPEG: \xFF\xD8
-  if (bytes[0] === 0xff && bytes[1] === 0xd8) {
+  if (bytes[0] === 0xff && bytes[1] === 0xd8)
     return "image/jpeg";
-  }
-  // GIF: GIF8
-  if (bytes[0] === 0x47 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x38) {
+  if (bytes[0] === 0x47 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x38)
     return "image/gif";
-  }
-  // WebP: RIFF????WEBP
   if (
     bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46 &&
     bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50
-  ) {
-    return "image/webp";
-  }
+  ) return "image/webp";
   return serverMime || "application/octet-stream";
 }
 
 export function FloatingDocViewer({ src, fileName, onClose }: FloatingDocViewerProps) {
-  const [dims] = useState(() => ({
-    w: Math.round(window.innerWidth * 0.25),
-    h: Math.round(window.innerHeight * 0.5),
-  }));
+  const [pos, setPos] = useState<{ x: number; y: number }>(() => {
+    const w = Math.round(window.innerWidth * 0.40);
+    return { x: window.innerWidth - w - 24, y: 24 };
+  });
 
-  const [pos, setPos] = useState<{ x: number; y: number }>(() => ({
-    x: window.innerWidth - Math.round(window.innerWidth * 0.25) - 24,
-    y: 24,
+  const [size, setSize] = useState<{ w: number; h: number }>(() => ({
+    w: Math.round(window.innerWidth * 0.40),
+    h: Math.round(window.innerHeight * 0.65),
   }));
 
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
   const [mimeType, setMimeType] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+
+  // ── Fetch ─────────────────────────────────────────────────────────────────
 
   useEffect(() => {
     let objectUrl: string | null = null;
@@ -78,53 +70,71 @@ export function FloatingDocViewer({ src, fileName, onClose }: FloatingDocViewerP
         setLoading(false);
       });
 
-    return () => {
-      if (objectUrl) URL.revokeObjectURL(objectUrl);
-    };
+    return () => { if (objectUrl) URL.revokeObjectURL(objectUrl); };
   }, [src]);
 
-  // ── Drag ──────────────────────────────────────────────────────────────────
+  // ── Drag (title bar) ──────────────────────────────────────────────────────
 
   const dragging = useRef(false);
   const dragOffset = useRef({ x: 0, y: 0 });
 
-  const onHeaderMouseDown = useCallback(
-    (e: React.MouseEvent) => {
-      if (e.button !== 0) return;
-      dragging.current = true;
-      dragOffset.current = { x: e.clientX - pos.x, y: e.clientY - pos.y };
-      e.preventDefault();
-    },
-    [pos],
-  );
+  const onHeaderMouseDown = useCallback((e: React.MouseEvent) => {
+    if (e.button !== 0) return;
+    dragging.current = true;
+    dragOffset.current = { x: e.clientX - pos.x, y: e.clientY - pos.y };
+    e.preventDefault();
+  }, [pos]);
+
+  // ── Resize (bottom-right grip) ────────────────────────────────────────────
+
+  const resizing = useRef(false);
+  const resizeStart = useRef({ mx: 0, my: 0, w: 0, h: 0 });
+
+  const onGripMouseDown = useCallback((e: React.MouseEvent) => {
+    if (e.button !== 0) return;
+    resizing.current = true;
+    resizeStart.current = { mx: e.clientX, my: e.clientY, w: size.w, h: size.h };
+    e.preventDefault();
+    e.stopPropagation();
+  }, [size]);
+
+  // ── Shared mousemove / mouseup ────────────────────────────────────────────
 
   useEffect(() => {
     const onMouseMove = (e: MouseEvent) => {
-      if (!dragging.current) return;
-      const x = Math.max(0, Math.min(window.innerWidth - dims.w, e.clientX - dragOffset.current.x));
-      const y = Math.max(0, Math.min(window.innerHeight - HEADER_H, e.clientY - dragOffset.current.y));
-      setPos({ x, y });
+      if (dragging.current) {
+        const x = Math.max(0, Math.min(window.innerWidth - size.w, e.clientX - dragOffset.current.x));
+        const y = Math.max(0, Math.min(window.innerHeight - HEADER_H, e.clientY - dragOffset.current.y));
+        setPos({ x, y });
+      }
+      if (resizing.current) {
+        const dx = e.clientX - resizeStart.current.mx;
+        const dy = e.clientY - resizeStart.current.my;
+        setSize({
+          w: Math.max(MIN_W, resizeStart.current.w + dx),
+          h: Math.max(MIN_H, resizeStart.current.h + dy),
+        });
+      }
     };
-    const onMouseUp = () => { dragging.current = false; };
+    const onMouseUp = () => {
+      dragging.current = false;
+      resizing.current = false;
+    };
     window.addEventListener("mousemove", onMouseMove);
     window.addEventListener("mouseup", onMouseUp);
     return () => {
       window.removeEventListener("mousemove", onMouseMove);
       window.removeEventListener("mouseup", onMouseUp);
     };
-  }, [dims]);
+  }, [size]);
 
-  // ── Render ────────────────────────────────────────────────────────────────
+  // ── Content ───────────────────────────────────────────────────────────────
 
   const isImage = mimeType.startsWith("image/");
 
   const renderContent = () => {
     if (loading) {
-      return (
-        <div style={centerStyle}>
-          <div style={spinnerStyle} />
-        </div>
-      );
+      return <div style={centerStyle}><div style={spinnerStyle} /></div>;
     }
     if (error || !blobUrl) {
       return (
@@ -144,8 +154,6 @@ export function FloatingDocViewer({ src, fileName, onClose }: FloatingDocViewerP
         />
       );
     }
-    // iframe + blob typed as application/pdf invokes Chrome's built-in PDFium viewer.
-    // <embed> is NOT used — it triggers the removed NPAPI plugin path on Linux.
     return (
       <iframe
         src={blobUrl}
@@ -155,14 +163,16 @@ export function FloatingDocViewer({ src, fileName, onClose }: FloatingDocViewerP
     );
   };
 
+  // ── Layout ────────────────────────────────────────────────────────────────
+
   return (
     <div
       style={{
         position: "fixed",
         left: pos.x,
         top: pos.y,
-        width: dims.w,
-        height: dims.h,
+        width: size.w,
+        height: size.h,
         zIndex: 1000,
         display: "flex",
         flexDirection: "column",
@@ -173,6 +183,7 @@ export function FloatingDocViewer({ src, fileName, onClose }: FloatingDocViewerP
         overflow: "hidden",
       }}
     >
+      {/* Title bar / drag handle */}
       <div
         onMouseDown={onHeaderMouseDown}
         style={{
@@ -221,8 +232,35 @@ export function FloatingDocViewer({ src, fileName, onClose }: FloatingDocViewerP
         </button>
       </div>
 
-      <div style={{ flex: 1, overflow: "hidden", background: "rgb(20, 26, 28)" }}>
+      {/* Content */}
+      <div style={{ flex: 1, overflow: "hidden", background: "rgb(20, 26, 28)", position: "relative" }}>
         {renderContent()}
+
+        {/* Resize grip — bottom-right corner */}
+        <div
+          onMouseDown={onGripMouseDown}
+          style={{
+            position: "absolute",
+            right: 0,
+            bottom: 0,
+            width: GRIP,
+            height: GRIP,
+            cursor: "nwse-resize",
+            zIndex: 10,
+          }}
+        >
+          {/* Visual dots */}
+          <svg
+            width={GRIP}
+            height={GRIP}
+            viewBox="0 0 14 14"
+            style={{ display: "block", opacity: 0.4 }}
+          >
+            <circle cx="11" cy="11" r="1.5" fill="rgb(106,152,175)" />
+            <circle cx="7"  cy="11" r="1.5" fill="rgb(106,152,175)" />
+            <circle cx="11" cy="7"  r="1.5" fill="rgb(106,152,175)" />
+          </svg>
+        </div>
       </div>
     </div>
   );
