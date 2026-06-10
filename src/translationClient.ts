@@ -82,7 +82,8 @@ export class TranslationClient {
     if (typeof localStorage !== "undefined") {
       localStorage.setItem(TranslationClient.LANG_KEY, lang);
     }
-    fetch(`https://trf.is/setlang?lang=${lang}`, { credentials: "include" }).catch(() => {});
+    const apex = typeof window !== "undefined" ? window.location.hostname.split(".").slice(-2).join(".") : "trf.is";
+    fetch(`https://${apex}/setlang?lang=${lang}`, { credentials: "include" }).catch(() => {});
     if (typeof window !== "undefined") {
       window.dispatchEvent(new CustomEvent("trf:lang-changed", { detail: lang }));
     }
